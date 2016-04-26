@@ -1,0 +1,29 @@
+WITH subqry (Id,MenueName,ParentId) as(
+
+select Id,MenueName,ParentId FROM menue where Id=3
+union all 
+SELECT Id,MenueName,ParentId from menue,subqry where menue.ParentId=subqry.Id
+)
+
+select *from subqry
+
+
+CREATE PROCEDURE sp_menue_delete (in strid BIGINT)
+BEGIN
+SELECT  Id from menue where FIND_IN_SET(Id,queryChildren(strid))
+END
+
+
+BEGIN
+DECLARE sTemp VARCHAR(4000);
+DECLARE sTempChd VARCHAR(4000);
+
+SET sTemp = '$';
+SET sTempChd = cast(areaId as char);
+
+WHILE sTempChd is not NULL DO
+SET sTemp = CONCAT(sTemp,',',sTempChd);
+SELECT group_concat(id) INTO sTempChd FROM menue where FIND_IN_SET(parentId,sTempChd)>0;
+END WHILE;
+return sTemp;
+END
