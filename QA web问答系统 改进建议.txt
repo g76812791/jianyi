@@ -8,6 +8,6 @@ D:\QA\QA\QA.web\Content\base.css
 .search-txt { border:1px solid #3192e1;min-width:200px; position:relative;height: 38px;margin-right: 0px; margin-bottom: 0px;}
 
 
-对应 首页 页面 修改 111
+对应 首页 页面 修改 
 
 D:\QA\QA\QA.web\Views\Home\Index.cshtml
