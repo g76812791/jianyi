@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<title>简单的jQuery分页插件下载</title>
+<style>
+*{ margin:0; padding:0; list-style:none;}
+a{ text-decoration:none;}
+a:hover{ text-decoration:none;}
+.tcdPageCode{padding: 15px 20px;text-align: left;color: #ccc;text-align:center;}
+.tcdPageCode a{display: inline-block;color: #428bca;display: inline-block;height: 25px;	line-height: 25px;	padding: 0 10px;border: 1px solid #ddd;	margin: 0 2px;border-radius: 4px;vertical-align: middle;}
+.tcdPageCode a:hover{text-decoration: none;border: 1px solid #428bca;}
+.tcdPageCode span.current{display: inline-block;height: 25px;line-height: 25px;padding: 0 10px;margin: 0 2px;color: #fff;background-color: #428bca;	border: 1px solid #428bca;border-radius: 4px;vertical-align: middle;}
+.tcdPageCode span.disabled{	display: inline-block;height: 25px;line-height: 25px;padding: 0 10px;margin: 0 2px;	color: #bfbfbf;background: #f2f2f2;border: 1px solid #bfbfbf;border-radius: 4px;vertical-align: middle;}
+</style>
+</head>
+<body>
+<br><br><br>
+
+<div class="tcdPageCode"></div>
+
+<script src="js/jquery-1.8.3.min.js"></script>
+<script src="js/jquery.page.js"></script>
+<script>
+  
+
+    $(function () {
+        pageSearch(1);
+    });
+
+    function pageSearch(num) {
+
+        //ajax成功后绘制分页html
+		    $(".tcdPageCode").createPage({
+		        pageCount: 100,
+		        current: num,
+		        backFn: function (p) {
+		            pageSearch(p);
+		        }
+		    });
+	}
+
+
+    ///ajax 示例
+        search(1);
+
+        function search(num) {
+            $.ajax({
+                url: '@(System.Configuration.ConfigurationManager.AppSettings["QaApiAddress"])GetNewQuestion',
+                data: { size: 15, index: num, searchKey: $.trim($("#content").val()), domain: $(".label-primary").text(), uid: '@ViewBag.username' },
+                type: "get",
+                dataType: "json",
+                contentType: contentType,
+                success: function (result) {
+
+                    $("#count").text(result.data.total);
+                    if (result.data.total <= 15) {
+                        $(".tcdPageCode").hide();
+                    } else {
+                        $(".tcdPageCode").show();
+                    }
+
+
+                    var html = "";
+                    $.each(result.data.list, function (i, e) {
+                        html += $("#hid_home").html()
+                            .replace(/{QID}/g, e.ID)
+                            .replace(/{question}/, encodeURIComponent(e.Content))
+                            .replace(/{question}/, HTMLEncode(e.Content))
+                            .replace(/{CheckCount}/g, e.CheckCount)
+                    });
+                    $("#hometop").empty().append(html); //装载对应分页的内容
+
+                    $(".tcdPageCode").createPage({
+                        pageCount: Math.ceil(result.data.total / 15),
+                        current: num,
+                        backFn: function (p) {
+                            search(p);
+                        }
+                    });
+
+
+
+                }
+            });
+        }
+
+
+
+   // {"total":451,"list":[{"type":"物权法","typeid":"3","q":"多人共有房屋出售是否必须经过全体共有人同意？","id":"CA00000207"},{"type":"继承法;物权法","typeid":"50;3","q":"婚前房屋作为遗产应当如何分割和继承？","id":"CA00000244"},{"type":"物权法;民事诉讼法","typeid":"3;62","q":"诉权与胜诉权","id":"CA00000288"},{"type":"民法;物权法","typeid":"42;3","q":"争议房屋的所有权怎么判断？","id":"CA00000334"},{"type":"民法;物权法","typeid":"42;3","q":"房产归谁所有？","id":"CA00000339"},{"type":"合同法;物权法","typeid":"4;3","q":"购置二手房，买家应注意什么？","id":"CA00000346"},{"type":"物权法;合同法;民事诉讼法","typeid":"3;4;62","q":"如何保障我家的拆迁权益","id":"CA00000356"},{"type":"婚姻法;物权法;民事诉讼法","typeid":"41;3;62","q":"我用婚前存款买的房，为何算作夫妻共同所有？","id":"CA00000360"},{"type":"物权法","typeid":"3","q":"抵押权和质押权不是一个法律概念","id":"CA00000425"},{"type":"物权法","typeid":"3","q":"颜色不同的房屋产权证所包含的所有权区别","id":"CA00000445"},{"type":"物权法","typeid":"3","q":"贷款抵押不能只抵押建筑物而不抵押土地所有权","id":"CA00000452"},{"type":"继承法;物权法","typeid":"50;3","q":"遗产房屋翻建变更后继承权怎么实现","id":"CA00000463"},{"type":"侵权责任法;物权法","typeid":"5;3","q":"涉及城市住宅区噪音及环境污染的法律规定","id":"CA00000465"},{"type":"物权法","typeid":"3","q":"轿车所有权自过户登记时转让吗","id":"CA00000604"},{"type":"物权法","typeid":"3","q":"房屋采光权受损害怎么办","id":"CA00000639"},{"type":"物权法;婚姻法;合同法","typeid":"3;41;4","q":"丈夫赠与妻子房产在没有变更登记之前能反悔吗","id":"CA00000689"},{"type":"物权法","typeid":"3","q":"共有房产被一人卖掉，其他共有人该怎么办","id":"CA00000696"},{"type":"物权法","typeid":"3","q":"拍得的汽车如何办理转移登记","id":"CA00000701"},{"type":"物权法;侵权责任法","typeid":"3;5","q":"车辆买卖未过户，事故风险谁承担","id":"CA00000707"},{"type":"物权法;民法","typeid":"3;42","q":"业主自行操作立体车库导致车辆被砸谁担责？","id":"CA00000711"},{"type":"民法;物权法;合同法","typeid":"42;3;4","q":"业主委员会是否为适格的原告？","id":"CA00000714"},{"type":"物权法","typeid":"3","q":"未登记的房产能继承吗？","id":"CA00000744"},{"type":"物权法","typeid":"3","q":"开发商能否保留已出售商品房外墙面的所有权及使用权？","id":"CA00000771"},{"type":"物权法;民法","typeid":"3;42","q":"侵犯其他业主权益是否应排除妨害？","id":"CA00000786"},{"type":"物权法","typeid":"3","q":"丈夫以共有房屋做抵押是否有效？","id":"CA00000810"},{"type":"物权法","typeid":"3","q":"打广告超过专有部分的外墙是否构成侵权？","id":"CA00000850"},{"type":"物权法","typeid":"3","q":"抵押权是否因主债权超过诉讼时效而消灭？","id":"CA00000855"},{"type":"物权法","typeid":"3","q":"房产异议登记之诉应否受理？","id":"CA00000890"},{"type":"物权法","typeid":"3","q":"假公证骗卖他人房产时，如何认定善意第三人？","id":"CA00000953"},{"type":"物权法;民法","typeid":"3;42","q":"承租人受到侵害时能否要求物业公司承担责任？","id":"CA00000974"}]}
+</script>
+
+<div style="text-align:center;margin:50px 0; font:normal 14px/24px 'MicroSoft YaHei';">
+</div>
+</body>
+</html>
