@@ -1,0 +1,26 @@
+﻿@{
+    Layout = null;
+}
+@if (ViewBag.RelatedList != null && ViewBag.RelatedList.Rows.Count > 0)
+{
+
+    int i = 1;
+    <span style="color: rgb(6, 66, 176); border-bottom: 1px dotted gray; display: inline;">相关案例</span>
+    <div class="bd">
+        <ul>
+            @foreach (System.Data.DataRow dr in ViewBag.RelatedList.Rows)
+            {
+
+                var str = dr["__sys_from"].ToString().Split('#'); ////数据库Id，code,名称，类型
+                var dbId = str[0];
+                if (!dbId.Equals(ViewBag.dbId) && !dr["SYS_FLD_SYSID"].ToString().Equals(ViewBag.recordId))
+                {
+                    <li>[<span>@i</span>]<a title="@dr["题名"].ToString()" href="@Url.Action("Detail","Mobile",new {dbID=str[0],dbCode=str[1],sysID=dr["SYS_FLD_SYSID"]})" target="_blank">@Html.Raw(ColumnAliasHelper.SubContent(ColumnAliasHelper.GetContent(dr, "题名"), 30))</a></li>
+                    i++;
+                }
+            }
+        </ul>
+    </div>
+}
+
+

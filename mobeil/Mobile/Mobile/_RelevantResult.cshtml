@@ -1,0 +1,21 @@
+﻿@{
+    Layout = null;
+}
+
+@if (ViewBag.RelevantList != null && ViewBag.RelevantList.Rows.Count > 0)
+{
+    int i = 0;
+    <span style="color: rgb(6, 66, 176); border-bottom: 1px dotted gray; display: inline;">相关法规</span>
+    <div class="bd">
+        <ul>
+            @foreach (System.Data.DataRow dr in ViewBag.RelevantList.Rows)
+            {
+                i++;
+                string title = string.Format("{0} {1}", dr["中文标题"], dr["条目序号"]);
+                <li>[<span>@i</span>]<a title="@title" href="@Url.Action("_RelevantDetail","Detail",new {sysId= dr["目录编号"] })" target="_blank">@Html.Raw(ColumnAliasHelper.SubContent(title, 30))</a></li>
+            }
+        </ul>
+    </div>
+    
+}
+

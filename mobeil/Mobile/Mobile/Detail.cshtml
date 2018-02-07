@@ -1,0 +1,120 @@
+﻿@{
+    Layout = null;
+    var detailBasicFieldList = ViewBag.DetailBasicFieldList as List<string>;
+    var detailContentFieldList = ViewBag.DetailContentFieldList as List<string>;
+    ViewBag.Title = ViewBag.recTitle;
+}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>司法行政（法律服务）案例库</title>
+    <link href="~/Scripts/mobile/phoneStyle.css" rel="stylesheet" />
+    <link href="~/Scripts/mobile/define-common.css" rel="stylesheet" />
+
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="dtMain">
+            @if (ViewBag.DetialField != null && ViewBag.DetialField.Rows.Count > 0)
+            {
+                foreach (System.Data.DataRow dr in ViewBag.DetialField.Rows)
+                {
+                    var isSelected = "";
+                    if (dr["IsSelected"] != null)
+                    {
+                        isSelected = dr["IsSelected"].ToString();
+                    }
+                    <div class="dtTitle">
+                        <h2 class="title" title="@ViewBag.recTitle">
+                            @if (detailBasicFieldList != null && detailBasicFieldList.Contains("IsSelected") || detailContentFieldList != null && detailContentFieldList.Contains("IsSelected"))
+                            {
+                                if (dr["IsSelected"].ToString().Equals("1"))
+                                {
+                                    <i>精选</i>
+                                }
+                            }
+                            @ViewBag.recTitle
+                        </h2>
+                        <div class="dtInfo">
+                            @if (detailBasicFieldList != null && detailBasicFieldList.Any())
+                            {
+                                foreach (var basic in detailBasicFieldList)
+                                {
+                                    <p>
+                                        <label>【@basic】</label>@Html.Raw(dr[basic])
+                                    </p>
+                                }
+                            }
+                        </div>
+                        <div class="dtInfo">
+                            @if (detailContentFieldList != null && detailContentFieldList.Any())
+                            {
+
+                                foreach (var content in detailContentFieldList)
+                                {
+
+                                    if (content.StartsWith("SYS_FLD_") || content == "浏览量" || content == "IsSelected" || content.StartsWith("案例标题"))
+                                    {
+                                        continue;
+                                    }
+                                    if (!content.Equals("SelectedReason"))
+                                    {
+                                        System.Data.DataRow columnInfo = ViewBag.RColumnInfo.Select(string.Format("Name='{0}'", content))[0];
+                                        string colname = content;
+                                        if (!string.IsNullOrEmpty(columnInfo["DispName"].ToString()))
+                                        {
+                                            colname = columnInfo["DispName"].ToString();
+                                        }
+                                        <p>
+                                            <label>【@colname】</label>@Html.Raw(HtfWebImage.VirtualToTrueObj(dr[content]))
+                                        </p>
+                                    }
+                                }
+                            }
+                        </div>
+                        <div class="dtInfo">
+                            @if (isSelected.Equals("1") && dr["SelectedReason"] != null && !string.IsNullOrEmpty(dr["SelectedReason"].ToString()))
+                            {
+                                <p>
+                                    <label>【推选理由】</label>@Html.Raw(dr["SelectedReason"].ToString())
+                                </p>
+                            }
+                        </div>
+                        
+                        <div id="search-loading" style="display: none; bottom: 240px;">
+                            <img alt="" src="~/Images/blue-loading.gif" /><span></span>
+                        </div>
+                        <br />
+                    </div>
+                  
+                   
+                }
+
+            }
+        </div>
+        <div class="dtMain">
+            <div class="dtMainCenter">
+                <div class="dtMod" knn_name="block" id="resembles_container_thesis">
+                    <div class="bd" id="similarityContent">
+                        <div id="relevantResult">
+                            
+                        </div>
+                        <div id="relatedResult">
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="~/Scripts/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript">
+            $(function () {
+                $("#relevantResult").load("@Url.Action("_RelevantResult", "Mobile")", { keywords: '@ViewBag.RelatedKeyWords' });//ViewBag.RelatedKeyWords "养老保险"
+                $("#relatedResult").load("@Url.Action("_RelatedResult", "Mobile")", { dbId: '@ViewBag.dbId', sysId: '@ViewBag.recordId', keywords: '@ViewBag.RelatedKeyWords' });
+            })
+        </script>
+    </div>
+</body>
+</html>

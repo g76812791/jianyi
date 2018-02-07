@@ -1,0 +1,85 @@
+﻿@{
+    Layout = null;
+    ViewBag.Title = ViewBag.recTitle;
+}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>司法行政（法律服务）案例库</title>
+    <link href="~/Content/law/common.css" type="text/css" rel="stylesheet" />
+    <link href="~/Content/law/al_page_fx.css" type="text/css" rel="stylesheet" />
+    <link href="~/Content/law/footer.css" rel="stylesheet" />
+    <style type="text/css">
+        .contentspan span {
+            font-family: "微软雅黑",Arial,Lucida,Verdana,Helvetica,sans-serif;
+            font-size: 14px;
+            color: #333;
+            font-weight: normal;
+            line-height: 2.5em;
+        }
+    </style>
+
+</head>
+
+<body>
+    @Html.Partial("lawheader")
+    <!------ 返回开始 ------>
+    <div class="back">
+        <a href="@Url.Action("Index","Law")" target="_blank">首页</a>  > <span>@ViewBag.Title</span>
+    </div>
+    <!------ /返回结束 ------>
+    <!------ 主体内容开始 ------>
+    <div class="wbg">
+        <div class="wrapper">
+            <div class="clearfix">
+                <!--/案例类型导航-->
+                <!--主题内容开始-->
+                <div class="content" style="width: auto">
+                    @if (ViewBag.RelevantDetail != null && ViewBag.RelevantDetail.Rows.Count > 0)
+                    {
+                        foreach (System.Data.DataRow dr in ViewBag.RelevantDetail.Rows)
+                        {
+
+                        <!--案例内文开始-->
+                            <div class="wzinfo">
+                                <h3 title="@ViewBag.recTitle">
+                                    @ColumnAliasHelper.SubContent(ViewBag.recTitle, ConfigHelper.GetSearchResultCutLengh())
+                                </h3>
+                                <h5></h5>
+                                <ul class="clearfix">
+                                    <li>发布机关：@Html.Raw(dr["发布机关"])</li>
+                                    <li>发布日期：@Html.Raw(dr["发布日期"])</li>
+                                    <li>实施日期：@Html.Raw(dr["实施日期"])</li>
+                                    <li>发文字号：@Html.Raw(dr["发文字号"])</li>
+                                    <li>中文关键词：@Html.Raw(dr["中文关键词"])</li>
+                                    <li>效力级别：@Html.Raw(dr["效力级别"])</li>
+                                    <li>时效性：@Html.Raw(dr["时效性"])</li>
+                                    <div class="clear"></div>
+                                </ul>
+                                <div>全文：@Html.Raw(StringHelper.strEncode(dr["全文"].ToString()))</div>
+                            </div>
+                           
+                        }
+
+                    }
+
+                </div>
+                <!--案例内文结束-->
+            </div>
+            <!--/主题内容结束-->
+            <div class="clear"></div>
+        </div>
+
+    </div>
+    <!------ /主体内容结束 ------>
+    @Html.Partial("lawfooter")
+    <script src="~/Scripts/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#relevantResult").load("@Url.Action("_RelevantResult", "Detail",new { keywords = ViewBag.RelatedKeyWords })");//ViewBag.RelatedKeyWords
+            $("#relatedResult").load("@Url.Action("_RelatedResult","Detail",new { keywords = ViewBag.RelatedKeyWords })");
+        })
+    </script>
+</body>
+</html>

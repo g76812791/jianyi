@@ -1,0 +1,274 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = null;
+    var searchFileds = ViewBag.SeachInfo as IList<DBUSFIELD>;
+}
+
+<!DOCTYPE html>
+<html style="" class="js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients no-cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths">
+<head>
+    <meta charset="utf-8">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>司法行政（法律服务）问答知识库</title>
+    <link href="~/Scripts/mobile/mobilehome.css" rel="stylesheet" />
+    <link href="~/Content/themes/base/jquery-ui.css" rel="stylesheet" />
+    <script src="~/Scripts/modernizr-2.8.3.js"></script>
+    <script src="~/Scripts/jquery-1.9.1.min.js"></script>
+    <link href="~/Scripts/mobile/phoneStyle.css" rel="stylesheet" />
+    @*<link href="~/Scripts/mobile/define-common.css" rel="stylesheet" />*@
+    <script type="text/javascript">
+        var app = '/Law';
+        var area = '';
+        if (area.length > 0) {
+            area += '/';
+        }
+        if (app.charAt(app.length - 1) != '/') app += '/';
+    </script>
+    <style type="text/css">
+        .popup {
+            height: auto;
+        }
+
+        .head2 {
+            background: #4e65b5;
+        }
+    </style>
+    <link rel="shortcut icon" href="http://c.cnki.net/Law/favicon.ico">
+    <link rel="Bookmark" href="http://c.cnki.net/Law/favicon.ico">
+</head>
+<body>
+    <div class="tip"></div>
+    <div class="head2" style="margin: 0 auto;"><a href="@Url.Action("Index","Mobile")"><img src="~/Images/lawheader2.png" style="margin: 0 auto; display: block;"></a></div>
+    <div style="margin-top: 20px; font-size: 22px; text-align: center;color: #0642b0">司法行政（法律服务）问答知识库</div>
+    <div id="main-search-min">
+        <div class="search-wrap">
+            <div class="search-box">
+                <div class="searsite">
+                    @if (searchFileds != null && searchFileds.Count > 0)
+                    {
+                        var firstFiledName = "";
+                        var first = searchFileds.FirstOrDefault();
+                        if (first != null)
+                        {
+                            firstFiledName = first.ShowFieldName;
+                        }
+                        <a href="javascript:void(0);" onclick="showList(this);" class="prop-name">@firstFiledName</a>
+                        <ul class="seardrop" style="display: none;">
+                            @foreach (DBUSFIELD item in searchFileds)
+                            {
+                                if (item.RealFieldName == "是否精选" || item.RealFieldName == "省份" || item.RealFieldName == "发表时间")
+                                {
+                                    continue;
+                                }
+                                var selected = "";
+                                if (ViewBag.SearchField == item.RealFieldName)
+                                {
+                                    selected = "prop-name";
+                                }
+                                var keywordfiled = "";
+                                if (item.RealFieldName == "关键词")
+                                {
+                                    keywordfiled = "keywordfiled";
+                                }
+                                <li><a class="@selected @keywordfiled" data-realfield="@item.RealFieldName" href="javascript:void(0);" colname="title" op="%" onclick="liSelected(this, event, 'base')">@item.ShowFieldName</a></li>
+                            }
+
+                        </ul>
+                    }
+                </div>
+                <form id="formSearch">
+                    <input class="search-input" id="keywords" maxlength="200" name="keywords" value="" type="search">
+                    <input type="hidden" id="searchField" name="searchField" value="1" />
+                    <input type="hidden" id="pageIndexNow" name="pageIndexNow" value="1" />
+                    <input type="hidden" id="pageSizeNow" name="pageSizeNow" value="10" />
+                    <input type="hidden" id="sortField" name="sortField" value="" />
+                    <input type="hidden" id="sortDescAsc" name="sortDescAsc" value="" />
+                    <input type="hidden" id="listOrabst" name="listOrabst" value="" />
+                    <input type="hidden" id="fieldName" name="fieldName" value="" />
+                    <input type="hidden" id="fieldValue" name="fieldValue" value="" />
+                    <input type="hidden" id="currentSubid" name="currentSubid" value="0" />
+                    <a id="submitButton" href="javascript:void(0);" class="search-button"></a>
+                    <div class="clear"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="wrap">
+        <div class="mainCont" style="display: none;">
+            <div class="textinfo">
+                <div class="crumb">
+                    <div class="sideL"></div>
+                </div>
+            </div>
+            <div style="display: block;" class="filter">
+                <div class="sideL">
+                    @if (ViewBag.SortField != null)
+                    {
+                        int i = 0;
+                        <div class="btnbg">
+                            @foreach (DBUSFIELD item in ViewBag.SortField)
+                            {
+                                var typeid = 0;
+                                var orderClass = "";
+                                var ordercur = "";
+                                if (ViewBag.SortFiledNow == item.RealFieldName)
+                                {
+                                    ordercur = "ordercur";
+                                    if (ViewBag.SortDescAsc == "desc")
+                                    {
+                                        typeid = 1;
+                                        orderClass = "orderD";
+                                    }
+                                    else
+                                    {
+                                        typeid = 0;
+                                        orderClass = "orderU";
+                                    }
+                                }
+
+                                <a href="javascript:void(0);" style="" class="sortOrder @ordercur" onclick="sortClick(this,'@item.RealFieldName')">@item.ShowFieldName <span typeid="@typeid" class="orderQuery @orderClass"></span></a>
+                                i++;
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="crumb">
+                    <div class="sideR">
+                        <div class="total" page="4" pagecount="420439" style="display: block;">检索到<b>@ViewBag.ResultCount</b>条数据</div>
+                    </div>
+                </div>
+            </div>
+            <div class="journalhtml">
+            </div>
+            <div class="clear"></div>
+            <div>
+                <a id="pageMore" href="javascript:void(0);" style="display: none">加载更多数据</a>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="return-top">
+        <a href="javascript:scroll(0,0);" title="返回顶端" alt="返回顶端"></a>
+    </div>
+
+    <div id="search-loading" style="display: none; bottom: 364.5px;">
+        <img alt="" src="~/Images/blue-loading.gif">
+    </div>
+    
+    <ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content" id="ui-id-1" tabindex="0" style="display: none;"></ul><span role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible"></span>
+    <script src="/Scripts/jquery-ui-1.8.20.min.js"></script>
+    <script src="~/Scripts/mobile/common.js"></script>
+    <script src="~/Scripts/mobile/mobile.js"></script>
+    <script type="text/javascript">
+        function sortClick(obj, ename) {
+            $('#pageIndexNow').val('1');
+            $("#sortField").val(ename);
+            $(".sortOrder").removeClass("ordercur");
+            $(obj).addClass('ordercur');
+            var sort = $(obj).children(".orderQuery").attr('typeid');
+            if (sort === "1") {
+                $('#sortDescAsc').val('asc');
+                $(obj).children(".orderQuery").attr('typeid', 0);
+                $(obj).children(".orderQuery").removeClass('orderD').addClass('orderU');
+            }
+            else {
+                $('#sortDescAsc').val('desc');
+                $(obj).children(".orderQuery").attr('typeid', 1);
+                $(obj).children(".orderQuery").removeClass('orderU').addClass('orderD');
+            }
+            searchResult(1);
+        }
+        function filter(input) {
+            //debugger;
+            var pattern = new RegExp("[`~!@@#$^&*()=|{}':;',’\'\"\\[\\].<>/?~！@@#￥……&*（）—|{}【】‘；：”“'。，、？]");
+            var rs = "";
+            for (var i = 0; i < input.length; i++) {
+                rs = rs + input.substr(i, 1).replace(pattern, '');
+            }
+            return rs;
+        }
+        // 滚动翻页
+        function scrollChangePage() {
+            //debugger;
+            $("#pageMore").triggerOnView({
+                debug: false,
+                verticalRange: -150,
+                singleShotOnly: false,
+                scrolling: null
+            }).click(function () {
+                if ($(".listCont").attr("loading") == "0") {
+                    if ($(".popup:visible").length > 0) return;
+                    var pageIndex = parseInt($("#pageIndexNow").val()) + 1;
+                    if (pageIndex > 100) {
+                        showMessage("当前页面最多展现1000条数据！", "phone");
+                    }
+                    else {
+                        $(".listCont").attr("loading", 1);
+                        searchResult(pageIndex);
+                    }
+                }
+            });
+        }
+        function keywordsClick(word) {
+            var keywordfiled = $(".keywordfiled").html();
+            $(".searsite a:first").html(keywordfiled);
+            $("#searchField").val("关键词");
+            $("#keywords").val(word);
+            searchResult(1);
+        }
+        function searchResult(pageIndex) {
+            $("#search-loading").show();
+            $('#pageIndexNow').val(pageIndex);
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Search", "Mobile")",
+                data: $('#formSearch').serialize(),
+                success: function (msg) {
+                    if (pageIndex === 1) {
+                        $(".journalhtml").html(msg);
+                    } else {
+                        $(".journalhtml").append(msg);
+                    }
+                    $(".listCont").attr("loading", 0);
+                    $("#search-loading").hide();
+                    $("#pageMore").css('display', 'block');
+                    $(".mainCont").show();
+                    // 滚动翻页
+                    scrollChangePage();
+                },
+                error: function (e) {
+                    $("#search-loading").hide();
+                }
+            });
+
+
+        }
+        $(document).ready(function () {
+            // 初始化页面
+            $('#search-loading').css('bottom', +window.innerHeight / 2 + 'px');
+            //默认空检
+            searchResult(1);
+            $("#submitButton")
+                .click(function () {
+                    var keywords = $("#keywords").val();
+                    var validWord = filter(keywords);
+                    if (keywords !== "" && validWord === "") {
+                        alert("请不要输入特殊符号,仅支持中文，英文，数字");
+                        $("#keywords").val(validWord);
+                        $("#keywords").focus();
+                        return false;
+                    } else {
+                        $("#keywords").val(validWord);
+                        searchResult(1);
+                        return false;
+                    }
+
+                });
+        });
+    </script>
+</body>
+
+</html>

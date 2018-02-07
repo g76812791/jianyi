@@ -1,0 +1,97 @@
+﻿@using CNKI.TPI.Web.UI.Models
+@{
+    ViewBag.Title = "ResultList";
+}
+
+
+<div class="listCont" loading="0" style="display: block;">
+    @{
+        if (ViewBag.SearchResult != null)
+        {
+            System.Data.DataRow columnInfo = null;
+            System.Data.DataRow[] columnInfoList = null;
+            var regionList = RegionCenter.GetDataFromCache("RegionProvice");
+            var regionArea = new List<Address>();
+            if (regionList != null)
+            {
+                regionArea = regionList as List<Address>;
+            }
+            int i = 0;
+            foreach (System.Data.DataRow dr in ViewBag.SearchResult.Rows)
+            {
+                i++;
+                int sortno = ViewBag.PageSize * (ViewBag.PageNow - 1) + i;
+                var str = dr["__sys_from"].ToString().Split('#');////数据库Id，code,名称，类型
+                <div class="absCont">
+                    <div class="leftCol"></div>
+                    <div class="mainCol">
+                        <h2 class="title">
+                            <a href="@Url.Action("Detail","Mobile",new {dbID=str[0],dbCode=str[1],sysID=dr["SYS_FLD_SYSID"]})">
+                                @sortno .
+                                @Html.Raw(ColumnAliasHelper.SubContent(ColumnAliasHelper.GetContent(dr, "题名"), ConfigHelper.GetSearchResultCutLengh()))
+                            </a>
+                        </h2>
+                        <div class="baseinfo">
+                            <p class="info author">
+                                <span class="color-black">@str[2]</span>
+                                <span class="blk"></span>
+                                <a href="javascript:void(0);">@Html.Raw(dr["作者单位"].ToString())</a>
+                                <span class="blk"></span>
+                                @if (!string.IsNullOrWhiteSpace(StringHelper.NoHTML(dr["关键词"].ToString())))
+                                {
+                                    var keywords = StringHelper.NoHTML(dr["关键词"].ToString());
+                                    var array = keywords.Split(';');
+                                    if (array.Length == 1)
+                                    {
+                                        array = keywords.Split(' ');
+                                    }
+                                    if (array.Length == 1)
+                                    {
+                                        array = keywords.Split('；');
+                                    }
+                                    foreach (var m in array)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(m))
+                                        {
+                                            <a onclick="keywordsClick('@m')" class="keywordsbtn" style="margin-left: 2px" href="javascript:void(0);">@Html.Raw(m)</a>
+                                        }
+
+                                    }
+                                }
+                                <span class="blk"></span>
+                                @{
+                                    var name = StringHelper.RemoveHighlightTag(ColumnAliasHelper.GetContent(dr, "省份"));
+                                    var provice = regionArea.Find(m => m.RegionCode == name);
+                                    var proviceName = provice != null ? provice.FullName : "";
+                                }
+                                <span class="color-black">@proviceName</span>
+                            </p>
+                        </div>
+                        <p class="info abst">
+                            @{
+                                var content = StringHelper.NoHTML(dr["摘要"].ToString());
+                                if (content.Length > 200)
+                                {
+                                    content = content.Remove(200) + "...";
+                                }
+                            }
+                            @content
+                            <span class="stas">
+                                <span>访问量: <b>@dr["访问量"].ToString()</b></span>
+                                <span>发表时间: <b>@dr["发表时间"].ToString()</b></span>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+
+                                    }
+                                }
+
+    }
+
+
+
+
+
+</div>

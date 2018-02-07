@@ -1,0 +1,33 @@
+﻿.globalnav {height:20px;}
+#homelink {width:100%;height:30px;background-color:#569DF4;}
+#homelink a {color:#ffffff;float:left;}
+#simplesearch {padding-left: 10px;font: normal 14px/32px Î¢ÈíÑÅºÚ;color: #555;cursor:pointer;}
+.seardrop {width:105px;}
+.popup .searsite {width:40%;}
+h4.tuijian {padding-left:14px;}
+.search-input:focus,.cs-input:focus {outline: none;}
+.search-button,.search-input,.cs-input {display:inline;}
+input::-webkit-search-cancel-button {display: none;}
+.search-button {width:41px;}
+.com-search {margin:5px 16px;}
+h4.tuijian img {width:1.6rem;margin-right:10px;margin-bottom:-6px;}
+.dtMod .bd ul,.dtMod .bd div>a {margin-left:6px;}
+.delTxt {position:absolute;right:55px;display:none;width:10px;cursor:pointer;}
+.popup.advance-search .delTxt {right:35px;}
+.delTxt span {line-height:32px;display:inline;}
+.popup.advance-search .delTxt span {line-height:30px;}
+.headtitle {background-image: url(../../Content/lawyer/images/newheadtitle.png);width:245px;}
+#main-logo {margin-left:15px;}
+@media screen and (max-width: 375px) {
+    .mainCont .crumb .total {padding-left: 0px;}
+    .filter a.ordercur span {right:0px;}
+    .filter .btnbg > a {padding:0 8px;}
+}
+@media screen and (max-width: 320px) {
+    .filter .btnbg > a {padding:0 3px;}
+    .filter a.ordercur {padding-right:7px;}
+    .mainCont .crumb .total {padding-right:0px;}
+}
+.func a.downcnki {
+        background-position: -95px 0;
+}

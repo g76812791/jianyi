@@ -1,0 +1,233 @@
+﻿<html style="" class="js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients no-cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients no-cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths">
+<head>
+    <meta charset="utf-8">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>法律知识库</title>
+    <link href="css/mobilehome.css" rel="stylesheet">
+    <link href="css/jquery-ui.css" rel="stylesheet">
+    <script src="css/modernizr-2.8.3.js"></script>
+    <script src="css/jquery-1.9.1.min.js"></script>
+    <link href="css/phoneStyle.css" rel="stylesheet">
+    
+    <script type="text/javascript">
+        var app = '/Law';
+        var area = '';
+        if (area.length > 0) {
+            area += '/';
+        }
+        if (app.charAt(app.length - 1) != '/') app += '/';
+    </script>
+    <style type="text/css">
+        .popup {
+            height: auto;
+        }
+
+        .head2 {
+            background: #4e65b5;
+        }
+    </style>
+    <link rel="shortcut icon" href="http://c.cnki.net/Law/favicon.ico">
+    <link rel="Bookmark" href="http://c.cnki.net/Law/favicon.ico">
+</head>
+<body>
+    <div class="tip"></div>
+    <div class="head2" style="margin: 0 auto;">
+      
+    <img src="images/lawheader2.png" style="margin: 0 auto; display: block;"></a></div>
+    <div style="margin-top: 20px; font-size: 22px; text-align: center;color: #0642b0">公共法律服务问答知识库</div>
+    <div id="main-search-min">
+        <div class="search-wrap">
+            <div class="search-box">
+                <div class="searsite">
+                        <a href="javascript:void(0);" onClick="showList(this);" class="prop-name">案例全文</a>
+                        <ul class="seardrop" style="display: none;">
+                                <li><a class=" " data-realfield="案例全文" href="javascript:void(0);" colname="title" op="%" onClick="liSelected(this, event, 'base')">案例全文</a></li>
+                                <li><a class=" " data-realfield="题名" href="javascript:void(0);" colname="title" op="%" onClick="liSelected(this, event, 'base')">案例标题</a></li>
+                                <li><a class=" keywordfiled" data-realfield="关键词" href="javascript:void(0);" colname="title" op="%" onClick="liSelected(this, event, 'base')">检索主题词</a></li>
+                                <li><a class=" " data-realfield="作者单位" href="javascript:void(0);" colname="title" op="%" onClick="liSelected(this, event, 'base')">报送单位</a></li>
+                                <li><a class=" " data-realfield="分类" href="javascript:void(0);" colname="title" op="%" onClick="liSelected(this, event, 'base')">案例类型</a></li>
+
+                        </ul>
+                </div>
+                <form id="formSearch">
+                  <input id="searchField" name="searchField" value="1" type="hidden">
+                    <input id="pageIndexNow" name="pageIndexNow" value="1" type="hidden">
+                    <input id="pageSizeNow" name="pageSizeNow" value="10" type="hidden">
+                    <input id="sortField" name="sortField" value="" type="hidden">
+                    <input id="sortDescAsc" name="sortDescAsc" value="" type="hidden">
+                    <input id="listOrabst" name="listOrabst" value="" type="hidden">
+                    <input id="fieldName" name="fieldName" value="" type="hidden">
+                    <input id="fieldValue" name="fieldValue" value="" type="hidden">
+                    <input id="currentSubid" name="currentSubid" value="0" type="hidden">
+                    <a id="submitButton" href="javascript:void(0);" class="search-button"></a>
+                    <div class="clear"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="wrap">
+        <div class="mainCont" style="">
+            <div class="textinfo">
+                <div class="crumb">
+                    <div class="sideL"></div>
+                </div>
+            </div>
+            <div style="display: block;" class="filter">
+                <div class="sideL">
+                        <div class="btnbg btnsy" >
+                                <a href="javascript:void(0);" style="" class="sortOrder ordercur" onClick="sortClick(this,'发表时间')">民法总则<span typeid="1" class="orderQuery orderD"></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">物权法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">合同法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">侵权责任法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">劳动合同法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">消费者权益保护<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">居民身份证法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">道路交通安全法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">治安管理处罚法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">妇女权益保障法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">未成年保护法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">人民调解法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">行政许可法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">食品安全法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">婚姻法和继承法<span typeid="0" class="orderQuery "></span></a>
+                                <a href="javascript:void(0);" style="" class="sortOrder " onClick="sortClick(this,'访问量')">刑事诉讼法<span typeid="0" class="orderQuery "></span></a>
+                                
+                        </div>
+                </div>
+                <div class="crumb"></div>
+            </div>
+            <div class="journalhtml">
+
+
+</div>
+            <div class="clear"></div>
+            
+        </div>
+    </div>
+
+
+
+    <div id="return-top">
+        <a href="javascript:scroll(0,0);" title="返回顶端" alt="返回顶端"></a>
+    </div>
+
+    <div id="search-loading" style="bottom: 371.5px; display: none;">
+        <img alt="" src="/tpi65/Images/blue-loading.gif">
+    </div>
+    <script src="/Scripts/jquery-ui-1.8.20.min.js"></script>
+    <script src="/tpi65/Scripts/mobile/common.js"></script>
+    <script src="/tpi65/Scripts/mobile/mobile.js"></script>
+    <script type="text/javascript">
+        function sortClick(obj, ename) {
+            $('#pageIndexNow').val('1');
+            $("#sortField").val(ename);
+            $(".sortOrder").removeClass("ordercur");
+            $(obj).addClass('ordercur');
+            var sort = $(obj).children(".orderQuery").attr('typeid');
+            if (sort === "1") {
+                $('#sortDescAsc').val('asc');
+                $(obj).children(".orderQuery").attr('typeid', 0);
+                $(obj).children(".orderQuery").removeClass('orderD').addClass('orderU');
+            }
+            else {
+                $('#sortDescAsc').val('desc');
+                $(obj).children(".orderQuery").attr('typeid', 1);
+                $(obj).children(".orderQuery").removeClass('orderU').addClass('orderD');
+            }
+            searchResult(1);
+        }
+        function filter(input) {
+            //debugger;
+            var pattern = new RegExp("[`~!@#$^&*()=|{}':;',’\'\"\\[\\].<>/?~！@#￥……&*（）—|{}【】‘；：”“'。，、？]");
+            var rs = "";
+            for (var i = 0; i < input.length; i++) {
+                rs = rs + input.substr(i, 1).replace(pattern, '');
+            }
+            return rs;
+        }
+        // 滚动翻页
+        function scrollChangePage() {
+            //debugger;
+            $("#pageMore").triggerOnView({
+                debug: false,
+                verticalRange: -150,
+                singleShotOnly: false,
+                scrolling: null
+            }).click(function () {
+                if ($(".listCont").attr("loading") == "0") {
+                    if ($(".popup:visible").length > 0) return;
+                    var pageIndex = parseInt($("#pageIndexNow").val()) + 1;
+                    if (pageIndex > 100) {
+                        showMessage("当前页面最多展现1000条数据！", "phone");
+                    }
+                    else {
+                        $(".listCont").attr("loading", 1);
+                        searchResult(pageIndex);
+                    }
+                }
+            });
+        }
+        function keywordsClick(word) {
+            var keywordfiled = $(".keywordfiled").html();
+            $(".searsite a:first").html(keywordfiled);
+            $("#searchField").val("关键词");
+            $("#keywords").val(word);
+            searchResult(1);
+        }
+        function searchResult(pageIndex) {
+            $("#search-loading").show();
+            $('#pageIndexNow').val(pageIndex);
+            $.ajax({
+                type: "POST",
+                url: "/tpi65/Mobile/Search",
+                data: $('#formSearch').serialize(),
+                success: function (msg) {
+                    if (pageIndex === 1) {
+                        $(".journalhtml").html(msg);
+                    } else {
+                        $(".journalhtml").append(msg);
+                    }
+                    $(".listCont").attr("loading", 0);
+                    $("#search-loading").hide();
+                    $("#pageMore").css('display', 'block');
+                    $(".mainCont").show();
+                    // 滚动翻页
+                    scrollChangePage();
+                },
+                error: function (e) {
+                    $("#search-loading").hide();
+                }
+            });
+
+
+        }
+        $(document).ready(function () {
+            // 初始化页面
+            $('#search-loading').css('bottom', +window.innerHeight / 2 + 'px');
+            //默认空检
+            searchResult(1);
+            $("#submitButton")
+                .click(function () {
+                    var keywords = $("#keywords").val();
+                    var validWord = filter(keywords);
+                    if (keywords !== "" && validWord === "") {
+                        alert("请不要输入特殊符号,仅支持中文，英文，数字");
+                        $("#keywords").val(validWord);
+                        $("#keywords").focus();
+                        return false;
+                    } else {
+                        $("#keywords").val(validWord);
+                        searchResult(1);
+                        return false;
+                    }
+
+                });
+        });
+    </script>
+    <ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content" id="ui-id-1" tabindex="0" style="display: none;"></ul><span role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible"></span>
+
+
+
+</body>
+</html>
