@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="gb2312">
+    <title>css滤镜</title>
+    <style type="text/css">
+        * {
+            margin: 0px;
+            padding: 0px;
+            font-size: 16px;
+            font-family: 微软雅黑;
+        }
+
+        html, body, .mainbox {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+            .mainbox header {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 55px;
+                background: blue;
+                z-index: 3;
+                line-height: 55px;
+            }
+
+            .mainbox .left {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 210px;
+                background: gray;
+                z-index: 2;
+            }
+
+            .mainbox .right {
+                position: absolute;
+                top: 55px;
+                padding-left: 210px;
+                background: #efe9e9;
+                width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+
+                .mainbox .right .rightbox {
+                    /*overflow-y:scroll;*/
+                }
+
+                    .mainbox .right .rightbox .rightcon p {
+                        text-align: center;
+                    }
+
+        footer {
+            background: #000;
+            height: 40px;
+            line-height: 40px;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            z-index: 5;
+        }
+
+            footer p, header p, .left p {
+                text-align: center;
+                font-size: 16px;
+                color: #fff;
+            }
+
+        .left p {
+            margin-top: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="mainbox">
+        <header>
+            <p>这是顶部</p>
+        </header>
+        <div class="left">
+            <p>这里是左边菜单</p>
+
+            <a target="right" href="http://www.baidu.com" ">show msg</a><br>
+            <a target="right" href="http://www.cnki.net">show img</a><br>
+            <a target="right" href="http://sina.com">show pap</a><br>
+            <a target="right" href="http://360.com">show mul</a><br>
+
+        </div>
+        <div class="right" id="right">
+            <iframe name="right" src="http://192.168.107.232/myqa/AnswerService/IntentMap?domainname=%E5%8C%BB%E5%AD%A6&intentDomain=%E7%97%87%E7%8A%B6&kbDb=PMDS_GROUP&KbName=%E7%96%BE%E7%97%85%E7%9F%A5%E8%AF%86%E5%BA%93" frameborder="0" scrolling="yes" width="100%" height="100%"></iframe>
+        </div>
+    </div>
+    <footer>
+        <p>这里是底部</p>
+    </footer>
+<script type="text/javascript">
+    function sizeRight() {
+        var viewH = document.documentElement.clientHeight;
+        var right = document.getElementById("right");
+        right.style.height = (viewH - 95) + "px";
+    }
+    sizeRight();
+    window.onresize = function () {
+        setTimeout(sizeRight, 500)
+    }
+</script>
+</body>
+</html>
