@@ -1,0 +1,18 @@
+WinPython-64bit-3.5.3.0Qt5.exe
+
+
+
+1.安装依赖失败找的包 地址 https://www.lfd.uci.edu/~gohlke/pythonlibs/
+
+pip install scrapy
+
+
+C:\Users\Administrator\Desktop>pip install Twisted-17.9.0-cp35-cp35m-win_amd64.w
+hl
+
+scrapy
+
+
+ fetch('http://www.baidu.com')
+
+response.body
