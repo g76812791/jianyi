@@ -1,0 +1,112 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutW.cshtml";
+}
+<script src="~/Scripts/layer/layer.js"></script>
+<link href=@Url.Content("~/Content/easyui/themes/default/easyui.css") rel="stylesheet" />
+<link href=@Url.Content("~/Content/easyui/themes/icon.css") rel="stylesheet" />
+<script src=@Url.Content("~/Content/easyui/jquery.easyui.min.js")></script>
+<script src=@Url.Content("~/Content/easyui/locale/easyui-lang-zh_CN.js")></script>
+
+<link rel="stylesheet" href="~/Content/codemirror/lib/codemirror.css" />
+<link href="~/Content/codemirror/addon/display/fullscreen.css" rel="stylesheet" />
+<script src="~/Content/codemirror/lib/codemirror.js">
+</script>
+<script src="~/Content/codemirror/addon/edit/closetag.js">
+</script>
+<script src="~/Content/codemirror/addon/fold/xml-fold.js">
+</script>
+<script src="~/Content/codemirror/mode/xml/xml.js">
+</script>
+<script src="~/Content/codemirror/mode/javascript/javascript.js">
+</script>
+<script src="~/Content/codemirror/mode/css/css.js">
+</script>
+<script src="~/Content/codemirror/mode/htmlmixed/htmlmixed.js">
+</script>
+<link href="~/Content/codemirror/addon/fold/foldgutter.css" rel="stylesheet" />
+<script src="~/Content/codemirror/addon/fold/foldcode.js">
+</script>
+<script src="~/Content/codemirror/addon/fold/foldgutter.js">
+</script>
+<script src="~/Content/codemirror/addon/fold/brace-fold.js">
+</script>
+<script src="~/Content/codemirror/addon/fold/comment-fold.js">
+</script>
+<script src="~/Content/codemirror/addon/display/fullscreen.js"></script>
+
+<style>
+    .CodeMirror {
+        border: 1px solid #CCCCCC;
+        height: 500px;
+    }
+</style>
+
+<div class="head">
+    <div class="title">
+        <span style="vertical-align: middle; height: 20px; line-height: 20px;">知识库定制 </span>
+    </div>
+</div>
+@Html.Action("Step", "ComPart", new
+{
+    items = new List<string>
+    {
+        "意图域", "资源引入", "意图", "模板", "答案显示","测试"
+    },
+    index = 4
+})
+<div class="orderlist  myorder">
+    <div class="tab_cont" style="margin-top: 5px;">
+        <div class="list">
+            <img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="20" height="20" title="系统根据资源获取配置确定意图表达式与资源查询的对应关系，以此来查找相关数据表获取答案内容">
+            <span>系统根据资源获取配置确定意图表达式与资源查询的对应关系，以此来查找相关数据表获取答案内容</span>
+            <div style="margin: 0 auto; width: 400px;"><label>意图域：</label>@ViewBag.domainname <label style="margin-left: 10px;">意图子域：</label> @ViewBag.intentdomain</div>
+        </div>
+        <div>
+            @Html.Action("Tab", "ComPart", new { href = Url.Action("Index", "Domain") })
+            <div style="width: 800px; float: left">
+                <label>编辑答案显示：</label>
+                <div class="list" style="margin-top: 10px;">
+                    <textarea style="border: 1px solid #CCCCCC; width: 800px; height: 400px;" id="content" name="content"></textarea>
+                </div>
+                <div style="margin: 40px auto 0 auto; width: 230px;">
+                    <a href="@Url.Action("AddTemplate", new { domainname = ViewBag.domainname, intentdomain = ViewBag.intentdomain })" class="btn1">上一步</a><input type="button" style="margin-left: 20px;" class="btn1" onclick="subCshtml()" value="下一步" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    $(function () {
+        $.post('@Url.Action("GetModel")', { domainname: '@ViewBag.domainname', intentdomain: '@ViewBag.intentdomain' }, function (result) {
+            editorMirror.setValue(result);
+        });
+    });
+
+    editorMirror = CodeMirror.fromTextArea(document.getElementById("content"), {
+        mode: 'text/html',
+        autoCloseTags: true,
+        lineNumbers: true,
+        lineWrapping: true,
+        foldGutter: true,
+        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+        extraKeys: {
+            "F11": function (cm) {
+                cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+            },
+            "Esc": function (cm) {
+                if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+            }
+        }
+    });
+
+    function subCshtml() {
+        
+        var cshtml = editorMirror.getValue();
+        $.post('@Url.Action("AddCshtml")', { domainname: '@ViewBag.domainname', intentdomain: '@ViewBag.intentdomain', cshtml: cshtml }, function(result) {
+            if (result.Tip == "Success") {
+                window.location = encodeURI('@Url.Action("TestQa")' + '?domainname=@ViewBag.domainname&intentdomain=@ViewBag.intentdomain');
+          }
+        });
+    }
+</script>

@@ -1,0 +1,85 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutW.cshtml";
+}
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script src="~/Scripts/jquery.validate.min.js"></script>
+
+
+<script type="text/javascript">
+
+    $(function () {
+        $("#formsub").validate({
+            rules: {
+                "domainname": {
+                    required: true,
+                    maxlength: 100
+                },
+                "intentdomain": {
+                    required: true,
+                    maxlength: 100
+                }
+            },
+            messages: {
+                "domainname": {
+                    required: "请输入意图域名称",
+                    rangelength: "最大长度100"
+                },
+                "intentdomain": {
+                    required: "请输入意图子域名称",
+                    rangelength: "最大长度100"
+                }
+            },
+            errorClass: "field-validation-error"
+        });
+    });
+
+</script>
+
+
+<div class="head">
+    <div class="title">
+        <span style="vertical-align: middle; height: 20px; line-height: 20px;">知识库定制 </span>
+    </div>
+</div>
+@Html.Action("Step", "ComPart", new
+{
+    items = new List<string>
+    {
+        "意图域", "资源引入", "意图", "模板", "答案显示","测试"
+    }
+    ,
+    index = 0
+})
+<div class="orderlist myorder">
+    <div class="tab_cont" style="margin-top: 5px;">
+        <div class="list">
+            <img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="20" height="20" title="首先为知识库定义分类，如属于行业领域分类：法律、医药、农业等，子领域名对应知识库名称">
+            <span>首先为知识库定义分类，如属于行业领域分类：法律、医药、农业等，子领域名对应知识库名称</span>
+        </div>
+        <div>
+            @Html.Action("Tab", "ComPart", new{ href = Url.Action("Index", "Domain")})
+            <div style="width: 800px; float: left">
+                <form id="formsub" name="formsub" action="@Url.Action("AddDomain")" data-ajax="true" method="post">
+                    @Html.AntiForgeryToken()
+                    <ul class="mydetail">
+                        <li>
+                            <label>意图域名称：</label><input value="@ViewBag.domainname" type="text" id="domainname" name="domainname" />
+                        </li>
+                        <li>
+                            <label>意图子域：</label><input value="@ViewBag.intentdomain" type="text" id="intentDomain" name="intentDomain" />
+                        </li>
+                        <li>
+                            <input type="submit" class="btn1" value="下一步" />
+                        </li>
+                    </ul>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+

@@ -1,0 +1,33 @@
+﻿<link href=@Url.Content("~/Content/easyui/themes/default/easyui.css") rel="stylesheet" />
+<link href=@Url.Content("~/Content/easyui/themes/icon.css") rel="stylesheet" />
+<script src=@Url.Content("~/Content/easyui/jquery.easyui.min.js")></script>
+<script src=@Url.Content("~/Content/easyui/locale/easyui-lang-zh_CN.js")></script>
+<style type="text/css">
+    .panel{display:inline;float:left;margin-left: 5px;margin-top: 5px;width: 300px;cursor: pointer;}  
+</style>
+<div class="head">
+    <div class="title">
+        <span style="vertical-align: middle; height: 20px; line-height: 20px;">系统首页 </span>
+       @* <img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="20" height="20" title="首先需要定义知识库的行业领域，统称为意图域。">*@
+    </div>
+</div>
+<div class="orderlist m10 myorder">
+    <div class="tab_cont" style="margin-top: 5px;">
+        <div class="list">
+            <a href="@Url.Action("AddDomain")">
+                <div class="easyui-panel" title="创建知识库问答" style=" height: 200px; padding: 10px;">
+                    <p style="font-size: 14px">基于结构化的数据资源表创建问答，</p>
+                    <p style="font-size: 14px">例如：医药领域里的疾病数据表</p>
+                </div>
+            </a>
+            <div  class="easyui-panel" title="创建常见问题集问答" style="height:200px;padding:10px;">
+                <p style="font-size: 14px">基于常见问题数据资源表，</p>
+                <p style="font-size:14px">例如：农业领域中的常见问题数据表</p>
+            </div>
+            <div class="easyui-panel" title="创建自由文本问答" style="height:200px;padding:10px;">
+                <p style="font-size: 14px">基于自由文本内容为主的数据表，</p>
+                <p style="font-size:14px">例如：期刊论文库</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,60 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutW.cshtml";
+    string src = "";
+    try
+    {
+        var serverlist = KbaseWeb.Common.AppConfig.ServerList.Split(';');
+        if (serverlist.Length > 0)
+        {
+            src = serverlist[0];
+        }
+    }
+    catch
+    {
+    }
+}
+
+<script src="~/Scripts/layer/layer.js"></script>
+<link href=@Url.Content("~/Content/easyui/themes/default/easyui.css") rel="stylesheet" />
+<link href=@Url.Content("~/Content/easyui/themes/icon.css") rel="stylesheet" />
+<script src=@Url.Content("~/Content/easyui/jquery.easyui.min.js")></script>
+<script src=@Url.Content("~/Content/easyui/locale/easyui-lang-zh_CN.js")></script>
+<script>
+    $(function () { freshIFrame ();});
+    function freshIFrame() {
+        $("#qaframe").attr("src", "@src/query?q=" + encodeURIComponent($("#ceshiwenti").val()));
+    }
+</script>
+
+<div class="head">
+    <div class="title">
+        <span style="vertical-align: middle; height: 20px; line-height: 20px;">知识库定制 </span>
+    </div>
+</div>
+@Html.Action("Step", "ComPart", new
+{
+    items = new List<string>
+    {
+        "意图域", "资源引入", "意图", "模板", "答案显示","测试"
+    },
+    index = 5
+})
+<div class="orderlist  myorder">
+    <div class="tab_cont" style="margin-top: 5px;">
+        <div class="list">
+            <img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="20" height="20" title="首先为知识库定义分类，如属于行业领域分类：法律、医药、农业等，子领域名对应知识库名称">
+            <span>输入问题做测试</span>
+            <div style="margin: 0 auto; width: 400px;"><label>意图域：</label>@ViewBag.domainname <label style="margin-left: 10px;">意图子域：</label> @ViewBag.intentdomain</div>
+        </div>
+        <div>
+            @Html.Action("Tab", "ComPart", new { href = Url.Action("Index", "Domain") });
+            <div style="padding-top:30px; width: 800px; float: left;position:relative">
+                <input type="text" style="width:700px" id="ceshiwenti" value="@ViewBag.q" /> <input class="btn1" style="position:absolute;right:0px" value="问题测试" type="button" onclick="freshIFrame()"/>
+                <div class="list" style="margin-top: 10px;">
+                    <iframe id="qaframe" frameborder="0" style="display: block; margin-left: -6px; width: 101%; " height="500" src=""></iframe>
+                </div>
+                <div style="margin: 20px auto 0 auto;  width: 230px;"> <a href="@Url.Action("AddCshtml",new{domainname=ViewBag.domainname,intentdomain=ViewBag.intentdomain})" class="btn1">上一步</a><input type="button" style="margin-left: 20px;" class="btn1" value="完成" /></div>
+            </div>
+        </div>
+    </div>
+</div>

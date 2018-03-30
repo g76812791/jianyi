@@ -1,0 +1,472 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+using CBase.DB;
+using Comm;
+using Microsoft.Ajax.Utilities;
+using Model;
+using MyQA.Custom.DataAccess;
+using MyQA.Custom.DataAccess.Model;
+using MyQA.Custom.Model;
+using MyQA.KB.Domain.CMeta;
+using MyQA.KB.Domain.CModel;
+using MyQA.Web.Dal;
+using QAManagerEntity;
+using MyQA.Web.Comm;
+using MyQA.Web.Tool;
+using Newtonsoft.Json.Linq;
+using Webdiyer.WebControls.Mvc;
+
+namespace QA.cc.Controllers
+{
+    [Authorize]
+    public class WizardController : Controller
+    {
+        KDomain kDal = new KDomain();
+        KCategory kCategory = new KCategory();
+        DictIdentify dict = new DictIdentify();
+        AnswerService answerDal = new AnswerService();
+        AnswerServiceType typeDal = new AnswerServiceType();
+        QIntent qDal = new QIntent();
+        Template tDal = new Template();
+
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult AddDomain()
+        {
+            string username = CheckLogin.Instance.GetUser().username;
+          
+            //判断领域 子领域 是否存在 重新发起
+            
+            
+            var model = qa_progressrecordDal.First(e => e.user == username && e.progressid == 1 && e.status == 0);
+            if (model != null)
+            {
+                var dmodel = qa_progressdetailDal.First(e => e.user == username && e.progressid == 1 && e.verson == model.verson && e.nodeid == 1);
+                dynamic obj = JObject.Parse(dmodel.data);
+                string domainname = obj.domainname;
+                string intentdomain = obj.intentdomain;
+                ViewBag.domainname = domainname;
+                ViewBag.intentdomain = intentdomain;
+            }
+            return View();
+        }
+        [HttpPost]
+        public ActionResult AddDomain(string domainname, string intentdomain)
+        {
+            string pid = "0";
+            string domainid = "0";
+            qa_progressdetail nodeModel = new qa_progressdetail();
+            qa_progressrecord model = new qa_progressrecord();
+
+            string username = CheckLogin.Instance.GetUser().username;
+            model = qa_progressrecordDal.First(e => e.user == username && e.progressid == 1);
+            List<qa_progress> list = qa_progressDal.Query(e => e.progressid == 1);
+            //主流程记录是否空
+            if (model == null)
+            {
+                //写入流程详情
+                foreach (var progress in list)
+                {
+                    qa_progressdetail en = new qa_progressdetail();
+                    en.progressid = progress.progressid;
+                    en.data = progress.data;
+                    en.user = username;
+                    en.verson = 1;
+                    en.nodeid = progress.nodeid;
+                    en.status = progress.status;
+                    int i = qa_progressdetailDal.Insert(en);
+                    if (en.nodeid == 1)
+                    {
+                        en.id = i;
+                        nodeModel = en;
+                    }
+                }
+                model = new qa_progressrecord();
+                model.progressid = 1;
+                model.status = 0;
+                model.verson = 1;
+                model.user = username;
+                qa_progressrecordDal.Insert(model);
+            }
+            //主流程记录已完
+            else if (model.status == 1)
+            {
+                foreach (var progress in list)
+                {
+                    qa_progressdetail en = new qa_progressdetail();
+                    en.progressid = progress.progressid;
+                    en.data = progress.data;
+                    en.user = username;
+                    en.verson = model.verson + 1;
+                    en.nodeid = progress.nodeid;
+                    en.status = 0;
+                    int i = qa_progressdetailDal.Insert(en);
+                    if (en.nodeid == 1)
+                    {
+                        en.id = i;
+                        nodeModel = en;
+                    }
+                }
+                model.verson = model.verson + 1;
+                model.status = 0;
+                qa_progressrecordDal.Update(model);
+            } //主流程记录未完
+            else if (model.status == 0)
+            {
+                nodeModel = qa_progressdetailDal.First(e => e.user == username && e.progressid == 1 && e.verson == model.verson && e.nodeid == 1);
+                if (nodeModel.status == 1)
+                {
+                    var dmodel = qa_progressdetailDal.First(e => e.user == username && e.progressid == 1 && e.verson == model.verson);
+                    dynamic obj = JObject.Parse(dmodel.data);
+                    pid = obj.pid;
+                    return JavaScript("window.location='" + Url.Action("AddSource", new { domainname = domainname, pid = pid, intentdomain = intentdomain }) + "'");
+                }
+            }
+
+            byte[] sarr = System.Text.Encoding.Default.GetBytes(domainname);
+            int len = sarr.Length;
+            if (len > 16)
+            {
+                return JavaScript("alert('添加领域失败，请输入小于16个字符，1个汉字占2个字符')");
+            }
+            var result = kDal.Add(domainname);
+            if (result != null && result.Success)
+            {
+                CacheHelper.RemoveCache("domainlist");
+                domainDal.GetList();
+            }
+            else
+            {
+                return JavaScript("alert('添加领域失败')");
+            }
+            domainid = result.result.key;
+            List<string> Kbaseitem = new List<string>();
+            var relist = kCategory.Get(domainname, domainid, -1);
+            var listintent = relist.MetaList;
+            if (listintent != null)
+            {
+                foreach (var item in listintent)
+                {
+                    Kbaseitem.Add(item.FieldValue["CATEGORYNAME"].ToString());
+                }
+            }
+            if (Kbaseitem.Contains(intentdomain))
+            {
+                return JavaScript("alert('添加失败,意图子域已存在')");
+            }
+            var dResult = kCategory.Add(domainname, domainid, intentdomain);
+            pid = dResult.result.key;
+
+            /*   int taskid = qa_taskRepository.Insert(new qa_task()
+               {
+                   Datetime = DateTime.Now,
+                   Note = "QA引擎同步",
+                   Order = "Txt",
+                   Process = "正在同步",
+                   Status = 0
+               });
+               QAAsync(taskid);*/
+
+            nodeModel.data = JsonHelper.SerializeObject(new { domainname = domainname, intentdomain = intentdomain, pid = pid });
+            nodeModel.status = 1;
+            qa_progressdetailDal.Update(nodeModel);
+            return JavaScript("window.location='" + Url.Action("AddSource", new { domainname = domainname, pid = pid, intentdomain = intentdomain }) + "'");
+        }
+        public async Task QAAsync(int taskid)
+        {
+            await Task.Run(() =>
+            {
+                kDal.Apply(taskid.ToString());
+            });
+        }
+
+        [HttpGet]
+        public ActionResult AddSource(string domainname, string pid, string intentdomain)
+        {
+            ViewBag.domainname = domainname;
+            ViewBag.pid = pid;
+            ViewBag.intentdomain = intentdomain;
+            string username = CheckLogin.Instance.GetUser().username;
+            var model = qa_progressrecordDal.First(e => e.user == username && e.progressid == 1 && e.status == 0);
+            if (model != null)
+            {
+                var dmodel = qa_progressdetailDal.First(
+                        e => e.user == username && e.progressid == 1 && e.verson == model.verson && e.nodeid == 2);
+                ViewBag.data = dmodel.data;
+            }
+            else
+            {
+                ViewBag.data = "''";
+            }
+
+            return View();
+        }
+
+        // var any = qa_taskRepository.Any(p => p.Order == "Mysql" && p.Status == 0);
+        // if (any)
+        // return new JsonResult { Data = -100, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+        /// <summary>
+        /// 资源导入添加
+        /// </summary>
+        /// <param name="kw">知识库中文名</param>
+        /// <param name="table">表名</param>
+        /// <param name="domainname">意图域</param>
+        /// <param name="pid">意图域id</param>
+        /// <param name="intentdomain">意图子域</param>
+        /// <param name="queryattr">表字段</param>
+        /// <param name="queryintent">意图项</param>
+        /// <param name="intentsource">意图项、数据库字段列表</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult AddSource(string kw, string table, string domainname, string pid, string intentdomain, string queryattr, string queryintent, List<DbIntent> intentsource)
+        {
+            string Message = "添加成功";
+            string Tip = "Success";
+
+            qa_progressrecord model = new qa_progressrecord();
+            string username = CheckLogin.Instance.GetUser().username;
+            model = qa_progressrecordDal.First(e => e.user == username && e.progressid == 1);
+            qa_progressdetail nodeModel = new qa_progressdetail();
+
+            nodeModel = qa_progressdetailDal.First(e => e.user == username && e.progressid == 1 && e.verson == model.verson && e.nodeid == 2);
+            if (nodeModel.status == 1)
+            {
+                return Json(new { Tip = Tip, Message = Message });
+            }
+
+            //导入词典
+            string note = "VAR_" + PinyinHelper.PinyinString(queryattr);
+            var result = dict.Add(domainname, queryattr, note);
+            if (!result.Success)
+            {
+                Tip = "Error";
+                Message = "添加词典标识失败，词典标识已经存在！";
+            }
+            int id = DicTask.KbaseToMysql(table, queryattr, domainname, note, "", "", "1", true);
+            string filename = ConfigSetting.FileName + domainname + ".txt";
+            string localpath = Server.MapPath("~/Dictionary");
+            int tid = TxtHelper.GetText(domainname, localpath, filename);
+
+            //添加意图项
+            bool find = false;
+            foreach (var dbintent in intentsource)
+            {
+                if (dbintent.dbattr == queryattr)
+                {
+                    find = true;
+                    dbintent.intent = queryintent;
+                }
+                kCategory.Add(domainname, pid, dbintent.intent);
+                QIntent.Param enintent = new QIntent.Param();
+                enintent.domainname = domainname;
+                enintent.intentDomain = intentdomain;
+                enintent.focus = dbintent.intent;
+                enintent.name = dbintent.intent;
+                enintent.condition = "(" + queryintent + ",$" + note + ")";
+                qDal.Add(enintent);
+
+                AnswerService.Param en = new AnswerService.Param();
+                en.domainname = domainname;
+                en.intentDomain = intentdomain;
+                en.kbDb = table;
+                en.KbName = kw + "知识库";
+                en.type = "本地";
+                en.intentClass = "0";
+                en.focus = dbintent.intent;
+                en.kbAttr = dbintent.dbattr;
+                answerDal.Add(en);
+            }
+            if (!find)
+            {
+                kCategory.Add(domainname, pid, queryintent);
+                AnswerService.Param en = new AnswerService.Param();
+                en.domainname = domainname;
+                en.intentDomain = intentdomain;
+                en.kbDb = table;
+                en.KbName = kw + "知识库";
+                en.type = "本地";
+                en.intentClass = "0";
+                en.focus = queryintent;
+                en.kbAttr = queryattr;
+                answerDal.Add(en);
+            }
+
+            //添加资源映射
+            AnswerService.Param entype = new AnswerService.Param();
+            entype.domainname = domainname;
+            entype.intentDomain = intentdomain;
+            entype.kbDb = table;
+            entype.KbName = kw + "知识库";
+            entype.type = "本地";
+            typeDal.Add(entype);
+
+            nodeModel.data = JsonHelper.SerializeObject(new { kw = kw, table = table, domainname = domainname, pid = pid, intentdomain = intentdomain, queryattr = queryattr, queryintent = queryintent, intentsource = intentsource });
+            nodeModel.status = 1;
+            qa_progressdetailDal.Update(nodeModel);
+           
+            return Json(new { Tip = Tip, Message = Message });
+        }
+
+        [HttpGet]
+        public ActionResult AddIntent(string domainname, string intentdomain, int pagesize = 15, int pageindex = 1)
+        {
+
+
+
+            List<Dictionary<string, object>> data = new List<Dictionary<string, object>>();
+            QueryContainer<CMCustom> relist = qDal.Get(domainname, intentdomain, pagesize, pageindex);
+            var list = relist.MetaList;
+            if (list != null && list.Count > 0)
+            {
+                list.ForEach(e => data.Add(e.FieldValue));
+            }
+
+            if (data.Count > 0)
+            {
+                string note = data[0]["查询限定参数"].ToString();
+                note = note.Trim(')');
+                note = note.Substring(note.IndexOf(',') + 1);
+                note = note.TrimStart('$');
+                qa_dictionary dict = qa_dictionaryDal.GetModel(note, domainname);
+                ViewBag.word = dict.WORD;
+            }
+
+            var pageList = new PagedList<Dictionary<string, object>>(data, pageindex, pagesize, (int)relist.Total);
+            ViewBag.domainname = domainname;
+            ViewBag.intentdomain = intentdomain;
+            return View(pageList);
+        }
+
+        [HttpPost]
+        public ActionResult AddIntent(string domainname, string intentdomain, string word)
+        {
+            QueryContainer<CMCustom> relist = qDal.Get(domainname, intentdomain, -1);
+            var list = relist.MetaList;
+            if (list != null && list.Count > 0)
+            {
+                foreach (var e in list)
+                {
+                    string iID = e.FieldValue["意图编号"].ToString();
+                    string q = word + "的" + e.FieldValue["意图目标"];
+                    tDal.Add(domainname, iID, q);
+                }
+            }
+            return Json(new { Tip = "Success", Message = "添加成功" });
+        }
+
+        [HttpGet]
+        public ActionResult AddTemplate(string domainname, string intentdomain, int pagesize = 15, int pageindex = 1)
+        {
+            List<Dictionary<string, object>> data = new List<Dictionary<string, object>>();
+            QueryContainer<CMCustom> relist = qDal.Get(domainname, intentdomain, pagesize, pageindex);
+            var list = relist.MetaList;
+            if (list != null)
+            {
+                list.ForEach(e => data.Add(e.FieldValue));
+            }
+            var pageList = new PagedList<Dictionary<string, object>>(data, pageindex, pagesize, (int)relist.Total);
+            ViewBag.domainname = domainname;
+            ViewBag.intentdomain = intentdomain;
+            return View(pageList);
+        }
+
+        [HttpGet]
+        public ActionResult AddCshtml(string domainname, string intentdomain)
+        {
+            ViewBag.domainname = domainname;
+            ViewBag.intentdomain = intentdomain;
+            return View();
+        }
+
+        [ValidateInput(false)]
+        [HttpPost]
+        public ActionResult AddCshtml(string domainname, string intentdomain, string cshtml)
+        {
+            qa_partview en = new qa_partview();
+            en.domain = domainname;
+            en.intentDomain = intentdomain;
+            en.parttype = 2;
+            en.content = cshtml;
+            string name = domainname + "_" + intentdomain;
+            en.name = name;
+            if (fb_partviewDal.Any(q => q.name.Equals(name)))
+            {
+                fb_partviewDal.Update(en, e => e.name == name);
+            }
+            else
+            {
+                fb_partviewDal.Insert(en);
+            }
+            return Json(new { Tip = "Success", Message = "添加成功" });
+        }
+
+
+        public ActionResult TestQa(string domainname, string intentdomain)
+        {
+            List<Dictionary<string, object>> data = new List<Dictionary<string, object>>();
+            QueryContainer<CMCustom> qc = tDal.Get(domainname, "", 10, 1);
+            if (qc.Total > 0)
+            {
+                var list = qc.MetaList;
+                foreach (var item in list)
+                {
+                    data.Add(item.FieldValue);
+                }
+            }
+            if (data.Count > 0)
+            {
+                ViewBag.q = data[0]["问题"].ToString();
+            }
+
+            ViewBag.domainname = domainname;
+            ViewBag.intentdomain = intentdomain;
+            return View();
+        }
+
+        public ActionResult GetModel(string domainname, string intentdomain)
+        {
+            List<string> attrList = answerDal.GetAttr(domainname, intentdomain);
+            string content = "";
+            foreach (var attr in attrList)
+            {
+                content += attr + ",";
+            }
+            string name = domainname + "_" + intentdomain;
+            string temp = "";
+            if (fb_partviewDal.Any(q => q.name.Equals(name)))
+            {
+                qa_partview en = fb_partviewDal.First(e => e.name == name);
+                temp = en.content;
+            }
+            else
+            {
+                string lujing = System.Web.Hosting.HostingEnvironment.MapPath(@"~\App_Data");
+                try
+                {
+                    using (StreamReader reader = new StreamReader(lujing + @"\CsModel.html"))
+                    {
+                        temp = reader.ReadToEndAsync().Result;
+                    }
+                }
+                catch { }
+            }
+            return Json(temp);
+        }
+
+        public class DbIntent
+        {
+            public string dbattr { get; set; }
+
+            public string intent { get; set; }
+        }
+    }
+}

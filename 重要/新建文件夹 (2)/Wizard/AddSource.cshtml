@@ -1,0 +1,244 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutW.cshtml";
+}
+<script src="~/Scripts/layer/layer.js"></script>
+<link href=@Url.Content("~/Content/easyui/themes/default/easyui.css") rel="stylesheet" />
+<link href=@Url.Content("~/Content/easyui/themes/icon.css") rel="stylesheet" />
+<script src=@Url.Content("~/Content/easyui/jquery.easyui.min.js")></script>
+<script src=@Url.Content("~/Content/easyui/locale/easyui-lang-zh_CN.js")></script>
+<style type="text/css">
+    input[type="text"] {
+        height: 18px;
+        line-height: 18px;
+    }
+
+    input.read {
+        background-color: #ffffff;
+        border: none;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        sourcedata=@Html.Raw(ViewBag.data);
+        if (typeof(sourcedata)=="object") {
+            $("#treetable").hide();
+            $("#queryattr").text(sourcedata.queryattr);
+            $("#queryintent").val(sourcedata.queryintent);
+            var arrids = sourcedata.intentsource;
+            $("#answertable tbody").eq(0).nextAll().remove();
+            for (var i = 0; i < arrids.length; i++) {
+                var row = arrids[i];
+                var html = $("#answertemp").html()
+                       .replace(/{dbattr}/g, row.dbattr)
+                       .replace(/{intent}/g, row.intent);
+                $("#answertable").append(html);
+            }
+        }
+
+
+        $.fn.zTree.init($("#treeDemo"), setting);
+        $(document).on("click", ":radio", function () {
+            var dic = $(this).val();
+            $("#queryattr").text(dic);
+            $("#queryintent").val(dic);
+        });
+
+       
+    });
+    var setting = {
+        async: {
+            enable: true,
+            url: '@Url.Action("getNodes","Dictionary")',
+            autoParam: ["id", "name=n", "level=lv"],
+            otherParam: { "otherParam": "zTreeAsyncTest" },
+            dataFilter: filter
+        },
+        callback: {
+            onClick: TreeonClick
+        }
+    };
+
+    function filter(treeId, parentNode, childNodes) {
+        if (!childNodes) return null;
+        for (var i = 0, l = childNodes.length; i < l; i++) {
+            childNodes[i].name = childNodes[i].name.replace(/\.n/g, '');
+        }
+        return childNodes;
+    }
+
+    function TreeonClick(event, treeId, treeNode, clickFlag) {
+        if (clickFlag == 1 && !treeNode.isParent) {
+            $("#treeinnerbox").empty();
+            $("#queryattr").text('');
+            $("#queryintent").val('');
+            $("#answertable tbody").eq(0).nextAll().remove();
+            $.get(
+                '@Url.Action("GetField", "Faq")?table=' + treeNode.name, function(result) {
+                    if (result.success) {
+                        var html = "<tr> <th>列名</th><th>问题主项</th><th>答案项  <input type=\"checkbox\" id=\"qx\" onchange=\"quanxuan()\"></th></tr>";
+                        $.each(result.data, function(i, e) {
+                            html += "<tr>";
+                            html += " <td>" + e + "</td>";
+                            html += "<td><input type=\"radio\" name=\"qid\"  value=\"" + e + "\" /></td>";
+                            html += "<td><input type=\"checkbox\" name=\"ids\" onclick=\"checkattr(this,'" + e + "') \" value=\"" + e + "\"></td>";
+                            html += "</tr>";
+                        });
+                        $("#treeinnerbox").append(html); //装载对应分页的内容
+                        $(":radio").eq(0).click();
+                        $("#qx").click();
+                    } else {
+                        layer.msg(result.msg);
+                    }
+                });
+        }
+    };
+
+    function quanxuan() {
+        if (document.getElementById("qx").checked) {
+            $("[type='checkbox']").prop("checked", true);
+        } else {
+            $("[type='checkbox']").prop("checked", false);
+        }
+        var $ids = $("[name='ids']:checked");
+        var arrids = [];
+        $ids.each(function(i, e) {
+            arrids.push(e.value);
+        });
+        $("#answertable tbody").eq(0).nextAll().remove();
+        for (var i = 0; i < arrids.length; i++) {
+            var row = arrids[i];
+            var html = $("#answertemp").html()
+                .replace(/{dbattr}/g, row)
+                .replace(/{intent}/g, row);
+            $("#answertable").append(html);
+        }
+    }
+
+    function subSource() {
+        if (typeof (sourcedata) == "object") {
+            window.location = encodeURI('@Url.Action("AddIntent")' + '?domainname=@ViewBag.domainname&intentdomain=@ViewBag.intentdomain');
+        } else {
+            var intentsource = $('#answertable').tableRowsToJSONWithFilter();
+            var queryattr = $("#queryattr").text();
+            var queryintent = $("#queryintent").val();
+            var treeObj = $.fn.zTree.getZTreeObj("treeDemo");
+            var selectedNodes = treeObj.getSelectedNodes()[0];
+            var table = selectedNodes.name;
+            var pnode = selectedNodes.getParentNode();
+            var kw = pnode.name;
+            indexlayer=  load();
+            $.post('@Url.Action("AddSource")', {
+                kw: kw,
+                table:table,
+                domainname: '@ViewBag.domainname',
+                pid:'@ViewBag.pid',
+                intentdomain: '@ViewBag.intentdomain',
+                queryattr: queryattr,
+                queryintent: queryintent,
+                intentsource: intentsource
+            }, function (result) {
+                if (result.Tip == "Success") {
+                    window.location = encodeURI('@Url.Action("AddIntent")' + '?domainname=@ViewBag.domainname&intentdomain=@ViewBag.intentdomain');
+                } else {
+                    layer.msg(result.Message);
+                    layer.close(indexlayer);
+                }
+            });
+        }
+    }
+
+    function checkattr(obj, id) {
+        if ($(obj).prop('checked')) {
+            var html = $("#answertemp").html()
+                 .replace(/{dbattr}/g, id)
+                 .replace(/{intent}/g, id);
+            $("#answertable").append(html);
+        } else {
+            $("#" + id).parent().remove();
+        }
+        if ($('input[name="ids"]:checked').length == $('input[name="ids"]').length) {
+
+            $("#qx").prop("checked", true);
+        } else {
+            $("#qx").prop("checked", false);
+        }
+    }
+    function load() {
+        var index = layer.load(1, {
+            shade: [0.1, '#fff'] //0.1透明度的白色背景
+        });
+        return index;
+    }
+</script>
+<div class="head">
+    <div class="title">
+        <span style="vertical-align: middle; height: 20px; line-height: 20px;">知识库定制 </span>
+    </div>
+</div>
+@Html.Action("Step", "ComPart", new
+{
+    items = new List<string>
+    {
+        "意图域", "资源引入", "意图", "模板", "答案显示","测试"
+    },
+    index = 1
+})
+<div class="orderlist  myorder">
+    <div class="tab_cont" style="margin-top: 5px;">
+        <div class="list">
+            <img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="20" height="20" title="可基于数据表结构导入意图语义项，意图语义项是意图表达的基本单位，可初步理解为表结构中的字段,问题主项为数据表中的主要字段，答案项为问题中的目标，如：疾病数据表中的疾病名为主要字段，并发症，病因等字段为目标字段，每个问题一般由一个问题主项和一个答案项组成">
+            <span>可基于数据表结构导入意图语义项，意图语义项是意图表达的基本单位，可初步理解为表结构中的字段,问题主项为数据表中的主要字段，答案项为问题中的目标，如：疾病数据表中的疾病名为主要字段，并发症，病因等字段为目标字段，每个问题一般由一个问题主项和一个答案项组成</span>
+            <div style="margin: 0 auto; width: 400px;"><label>意图域：</label>@ViewBag.domainname <label style="margin-left: 10px;">意图子域：</label> @ViewBag.intentdomain</div>
+        </div>
+        <div>
+            @Html.Action("Tab", "ComPart", new { href = Url.Action("Index", "Domain") })
+            <div style="width: 800px; float: left">
+
+                <div class="list" style="margin-top: 10px;">
+                    <table class="myhover" style="width: 80%" cellspacing="0" cellspadding="0" border="0">
+                        <tr>
+                            <th style="width: 50%">问题主项</th>
+                            <th style="width: 50%">主项语义</th>
+                        </tr>
+                        <tr>
+                            <td id="queryattr"></td>
+                            <td><input type="text" id="queryintent" /></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <table class="myhover" id="answertemp" style="width: 90%;display: none;">
+                    <tr id="{dbattr}">
+                        <td data-id="dbattr">
+                            <input class="read" type="text" readonly="readonly" value="{dbattr}" />
+                        </td>
+                        <td data-id="intent">
+                            <input type="text" value="{intent}" />
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="list" style="margin-top: 10px; margin-bottom: 10px;">
+                    <table id="answertable" class="myhover" style="width: 80%" cellspacing="0" cellspadding="0" border="0">
+                        <tbody>
+                            <tr>
+                                <th style="width: 50%">答案项</th>
+                                <th style="width: 50%">答案语义</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                @*fit="true"*@
+                <div id="treetable" class="easyui-layout" style="height: 400px; width:640px;">
+                    <div region="west" style="width: 190px; height: 390px;" split="true">
+                        <ul id="treeDemo" class="ztree"></ul>
+                    </div>
+                    <div region="center" class="list" style="height: 390px;" id="mainPanle" border="true">
+                        <table class="myhover" style="width: 90%" cellspacing="0" cellspadding="0" border="0" id="treeinnerbox"></table>
+                    </div>
+                </div>
+                <div style="margin: 120px auto 0 auto;  width: 230px;"> <a href="@Url.Action("AddDomain")" class="btn1">上一步</a><input type="button" style="margin-left: 20px;" class="btn1" onclick="subSource()" value="下一步" /></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,102 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutW.cshtml";
+}
+@using Webdiyer.WebControls.Mvc
+@model PagedList<Dictionary<string, object>>
+<script src="~/Scripts/layer/layer.js"></script>
+<link href=@Url.Content("~/Content/easyui/themes/default/easyui.css") rel="stylesheet" />
+<link href=@Url.Content("~/Content/easyui/themes/icon.css") rel="stylesheet" />
+<script src=@Url.Content("~/Content/easyui/jquery.easyui.min.js")></script>
+<script src=@Url.Content("~/Content/easyui/locale/easyui-lang-zh_CN.js")></script>
+<script type="text/javascript">
+    function Delete(id) {
+        if (confirm('确认删除吗？')) {
+            $.ajax({
+                url: '@Url.Action("Delete","Intent")',
+                type: "post",
+                data: {
+                    id: id,
+                    domain: '@ViewBag.domainname'
+                },
+                success: function (data) {
+                    if (data.Tip == "Success") {
+                        window.location.reload();
+                    } else {
+                        alert("删除失败！");
+                    }
+                }
+            });
+        }
+    }
+
+    function subIntent() {
+        $.post('@Url.Action("AddIntent")', {
+            domainname: '@ViewBag.domainname',
+            word: '@ViewBag.word',
+            intentdomain: '@ViewBag.intentdomain'
+        }, function (result) {
+            if (result.Tip == "Success") {
+                window.location = encodeURI('@Url.Action("AddTemplate")' + '?domainname=@ViewBag.domainname&intentdomain=@ViewBag.intentdomain');
+            }
+        });
+    }
+</script>
+<div class="head">
+    <div class="title">
+        <span style="vertical-align: middle; height: 20px; line-height: 20px;">知识库定制 </span>
+    </div>
+</div>
+@Html.Action("Step", "ComPart", new
+{
+    items = new List<string>
+    {
+        "意图域", "资源引入", "意图", "模板", "答案显示","测试"
+    },
+    index = 2
+})
+<div class="orderlist  myorder">
+    <div class="tab_cont" style="margin-top: 5px;">
+        <div class="list">
+            <img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="20" height="20" title="基于意图语义项创建意图，每个意图可理解为由相同的语义项组成的一类问题，如：xxx疾病的并发症，此类问题可定义为一个意图，由疾病名称和并发症两个语义项组成，其中问题目标是并发症，条件：疾病名">
+            <span>基于意图语义项创建意图，每个意图可理解为由相同的语义项组成的一类问题，如：xxx疾病的并发症，此类问题可定义为一个意图，由疾病名称和并发症两个语义项组成，其中问题目标是并发症，条件：疾病名</span>
+            <div style="margin: 0 auto; width: 400px;"><label>意图域：</label>@ViewBag.domainname <label style="margin-left: 10px;">意图子域：</label> @ViewBag.intentdomain</div>
+        </div>
+        <div>
+            @Html.Action("Tab", "ComPart", new { href = Url.Action("Index", "Domain") })
+            <div style="width: 800px; float: left">
+                <div class="list" style="margin-top: 10px;">
+                    <table class="myhover" style="width: 100%" cellspacing="0" cellspadding="0" border="0">
+                        <tr>
+                            <th>序号</th>
+                            <th>意图编号</th>
+                            <th>意图</th>
+                            <th>操作</th>
+                        </tr>
+                        @{
+                            int i = 1;
+                            int index = Model.PageSize * (Model.CurrentPageIndex - 1);
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@(index + i)</td>
+                                <td>@item["意图编号"]</td>
+                                <td>@item["查询限定参数"].ToString().Substring(1, item["查询限定参数"].ToString().IndexOf(',')-1)<span>的</span>@item["意图目标"]</td>
+                                <td>
+                                    @Html.ActionLink("编辑", null, null, new { target = "_blank", @class = "btn3", @href = Url.Action("Edit", "Intent", new { id = item["意图编号"], domainname = ViewBag.domainname, intentDomain = item["意图子域"].ToString().ClrString() }) })
+                                    @Html.ActionLink("删除", null, null, new { @class = "btn3", @href = "javascript:void(0)", @onclick = "Delete('" + @item["意图编号"] + "')" })
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    </table>
+                    <div class="total pt10">
+                        <div class="fl">共<em>@Model.TotalPageCount</em>页<em>@Model.TotalItemCount</em>条记录，当前为第<em>@Model.CurrentPageIndex</em>页</div>
+                        @Html.Pager(Model, new PagerOptions { PageIndexParameterName = "pageindex", CssClass = "mvcPager" })
+                    </div>
+                </div>
+                <div style="margin: 20px auto 0 auto;  width: 230px;"> <a href="@Url.Action("AddSource", new { domainname = ViewBag.domainname, intentdomain = ViewBag.intentdomain })" class="btn1">上一步</a><input type="button" style="margin-left: 20px;" class="btn1" onclick="subIntent()" value="下一步" /></div>
+            </div>
+        </div>
+    </div>
+</div>

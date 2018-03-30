@@ -1,0 +1,720 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutW.cshtml";
+}
+@using Webdiyer.WebControls.Mvc
+@model PagedList<Dictionary<string, object>>
+<script src="~/Scripts/layer/layer.js"></script>
+<link href=@Url.Content("~/Content/easyui/themes/default/easyui.css") rel="stylesheet" />
+<link href=@Url.Content("~/Content/easyui/themes/icon.css") rel="stylesheet" />
+<script src=@Url.Content("~/Content/easyui/jquery.easyui.min.js")></script>
+<script src=@Url.Content("~/Content/easyui/locale/easyui-lang-zh_CN.js")></script>
+<script src=@Url.Content("~/Scripts/jquery.tablednd_0_5.js")></script>
+
+<style>
+    .rul li {
+        height: 30px;
+    }
+</style>
+
+<script type="text/javascript">
+    $(function () {
+        $("input[name='temp']").click(function () {
+            var select = $(this).val();
+            layer.close(layindex);
+            if (select == 1) {
+                pop();
+            } else {
+                sentence();
+            }
+        });
+
+        $("input[name='look']").click(function () {
+            var select = $(this).val();
+            layer.close(layindex);
+            if (select == 1) {
+                show();
+            } else {
+                showst();
+            }
+        });
+
+
+        $("#tipModel").click(function () {
+            $("#helptip").text($(this).attr("gtitle"));
+            $('#hdlg').dialog('open').dialog('setTitle', '模板语法说明');
+        });
+        $(".tipModel").click(function () {
+            $("#helptip").text($(this).attr("gtitle"));
+            $('#hdlg').dialog('open').dialog('setTitle', '模板语法说明');
+        });
+
+        $("#partword").click(function () {
+
+            if ($("#example").val() == "") {
+                alert('示例问题不能为空');
+                return;
+            }
+            if (confirm('确定生成模板表达式吗，将替换模板文本框？')) {
+                $.post('@Url.Action("GetPartWord","Template")', { domainname: '@ViewBag.domainname', q: $("#example").val() }, function (result) {
+                    if (result != null) {
+                        var str = ""; //{ 1 | S | 关于 }
+                        for (var i = 0; i < result.length; i++) {
+                            var fuhao = "F";
+                            var row = result[i];
+                            str += "{" + (i + 1) + "|";
+                            if (row.indexOf('(T)') > 0) {
+                                fuhao = "T";
+                            }
+
+                            str += fuhao + "|" + row.replace(/\(.*\)/, "") + "}";
+                        }
+                        $("#template").val(str);
+                    }
+                });
+            }
+
+        });
+
+
+        $("#calcnumber").click(function () {
+            if ($("#template").val() == "") {
+                alert('模板不能为空');
+                return;
+            }
+            var str = $("#template").val();
+            var r = /\{(.+?)\}/g;
+            var arr = str.match(r);
+            var temp = "";
+            for (var i = 0; i < arr.length; i++) {
+                var row = arr[i].replace("{", "").replace("}", "");
+                var curr = row.split("|");
+                if (curr.length == 2) {
+                    temp += "{" + (i + 1) + "|" + curr[0] + "|" + curr[1] + "}";
+                } else {
+                    temp += "{" + (i + 1) + "|" + curr[1] + "|" + curr[2] + "}";
+                }
+            }
+            $("#template").val(temp);
+        });
+
+    });
+
+    function Delete(id) {
+        if (confirm('确认删除吗？')) {
+            $.ajax({
+                url: '@Url.Action("Delete", "Intent")',
+                type: "post",
+                data: {
+                    id: id,
+                    domain: '@ViewBag.domainname'
+                },
+                success: function (data) {
+                    if (data.Tip == "Success") {
+                        window.location.reload();
+                    } else {
+                        alert("删除失败！");
+                    }
+                }
+            });
+        }
+    }
+
+    function selectTemplate(id) {
+        $("input[name='temp']").removeAttr("checked");
+        $("#id").val(id);
+        layindex = layer.open({
+            title: "",
+            type: 1,
+            area: ['300px', '200px'],
+            shadeClose: true, //点击遮罩关闭层
+            content: $('#addtemplate')
+        });
+    }
+
+    function lookTemplate(id) {
+        $("input[name='look']").removeAttr("checked");
+        $("#id").val(id);
+        layindex = layer.open({
+            title: "",
+            type: 1,
+            area: ['300px', '200px'],
+            shadeClose: true, //点击遮罩关闭层
+            content: $('#looktemplate')
+        });
+    }
+
+
+    function pop() {
+        $("#question").val('');
+        $('#dlg').dialog('open').dialog('setTitle', '添加模板' + '-' + $("#id").val());
+    }
+
+    function save() {
+        if ($("#question").val() != "") {
+            $.post('@Url.Action("Add","Template")',
+                { domain: '@ViewBag.domainname', iID: $("#id").val(), q: $("#question").val() }
+                , function (result) {
+                    if (result.Tip == "Success") {
+                        alert('已添加');
+                        $('#dlg').dialog('close');
+                    } else {
+                        alert(result.Message);
+                    }
+                }
+            );
+        } else {
+            alert('问题不能为空！');
+        }
+    }
+
+    function sentence() {
+        $("#condition").val('');
+        $("#template").val('');
+        $("#sw").val('');
+        $('#sdlg').dialog('open').dialog('setTitle', '添加句型模板' + '-' + $("#id").val());
+    }
+    function saveSt() {
+        //校验
+        var data = {
+            domainname: '@ViewBag.domainname',
+            intentid: $("#id").val(),
+            condition: $("#condition").val(),
+            template: $("#template").val(),
+            sw: $("#sw").val(),
+            example: $("#example").val()
+        };
+
+        if ($.trim(data.template) == "") {
+            alert('模板不能为空');
+            return;
+        }
+        if ($.trim(data.condition) == "") {
+            alert('表达式不能为空');
+            return;
+        }
+
+        $.post('@Url.Action("AddStPattern","Template")',
+            data
+            , function (result) {
+                if (result.Tip == "Success") {
+                    alert('已添加');
+                    $('#sdlg').dialog('close');
+                } else {
+                    alert(result.Message);
+                }
+            }
+        );
+    }
+
+
+    function selectTem() {
+        $("#poptable tr").eq(0).nextAll().remove();
+        if ($("#template").val() != "") {
+            var str = $("#template").val();
+            var r = /\{(.+?)\}/g;
+            var arr = str.match(r);
+            for (var i = 0; i < arr.length; i++) {
+                var row = arr[i].replace("{", "").replace("}", "");
+                var curr = row.split("|");
+                if (curr.length == 2) {
+                    var html = $("#temp").html().replace(/{elem}/g, curr[0]).replace(/{context}/g, curr[1]).replace(/{combine}/g, '{' + curr[0] + '|' + curr[1] + '}');
+                    $("#poptable").append(html);
+                } else {
+                    var html = $("#temp").html().replace(/{elem}/g, curr[1]).replace(/{context}/g, curr[2]).replace(/{combine}/g, '{' + curr[1] + '|' + curr[2] + '}');
+
+                    $("#poptable").append(html);
+                }
+            }
+        }
+        $('#dlgquery').dialog('open');
+        $("#poptable").tableDnD();
+    }
+    function del(obj) {
+        $(obj).parent().parent().remove();
+    }
+
+    function appendTxt() {
+        var d = '<dd class="temp"><label></label><input type="text" name="context" /> <input type="button" onclick="delTxt(this)" value="─"></dd>';
+        $("#dsave").before(d);
+    }
+
+    function delTxt(obj) {
+        $(obj).parent().remove();
+    }
+
+    function addele() {
+        var check = true;
+        $("input[name='context']").each(function (index, item) {
+            if ($(this).val() == "") {
+                check = false;
+                return false;
+            }
+        });
+        if (check === false) {
+            alert('内容不能为空！');
+            return;
+        }
+        var txt = $("input[name='context']").map(function () {
+            return $(this).val();
+        });
+        var arrcontext = txt.get().join(",");
+        if ($("input[name='context']").length > 1) {
+            arrcontext = '[' + arrcontext + ']';
+        }
+        var html = $("#temp").html()
+            .replace(/{elem}/g, $("#elem").val())
+            .replace(/{context}/g, arrcontext)
+        .replace(/{combine}/g, '{' + $("#elem").val() + '|' + arrcontext + '}');
+
+        $("#poptable").append(html);
+        $(".temp").remove();
+        $("input[name='context']").eq(0).val('');
+        $("#elem").get(0).selectedIndex = 0;
+        $("#poptable").tableDnD();
+
+    }
+
+    function editele(obj) {
+        $("#poptable tr").removeClass("edit");
+        $(obj).parent().parent().addClass("edit");
+
+        var elem = $(obj).parent().parent().find("td[data-id='elem']").text();
+        var context = $(obj).parent().parent().find("td[data-id='context']").text();
+        var row = context.replace("[", "").replace("]", "");
+        var curr = row.split(",");
+        $("#elem").val(elem);
+        $(".temp").remove();
+        $("input[name='context']").eq(0).val(curr[0]);
+        for (var i = 1; i < curr.length; i++) {
+            var d = '<dd class="temp"><label></label><input type="text" name="context" value="' + curr[i] + '" /> <input type="button" onclick="delTxt(this)" value="─"></dd>';
+            $("#dadd").before(d);
+        }
+
+        $("#dadd").hide();
+        $("#dedit").show();
+
+    }
+
+    function modifyele() {
+
+        var check = true;
+        $("input[name='context']").each(function (index, item) {
+            if ($(this).val() == "") {
+                check = false;
+                return false;
+            }
+        });
+        if (check === false) {
+            alert('内容不能为空！');
+            return;
+        }
+        var txt = $("input[name='context']").map(function () {
+            return $(this).val();
+        });
+        var arrcontext = txt.get().join(",");
+        if ($("input[name='context']").length > 1) {
+            arrcontext = '[' + arrcontext + ']';
+        }
+        var html = $("#temp").html()
+            .replace(/{elem}/g, $("#elem").val())
+            .replace(/{context}/g, arrcontext)
+            .replace(/{combine}/g, '{' + $("#elem").val() + '|' + arrcontext + '}');
+        $("#poptable tr[class='edit']").replaceWith(html);
+        $(".temp").remove();
+        $("input[name='context']").eq(0).val('');
+        $("#elem").get(0).selectedIndex = 0;
+
+        $("#dadd").show();
+        $("#dedit").hide();
+        $("#poptable").tableDnD();
+
+    }
+    function backadd() {
+        $(".temp").remove();
+        $("input[name='context']").eq(0).val('');
+        $("#elem").get(0).selectedIndex = 0;
+        $("#dadd").show();
+        $("#dedit").hide();
+    }
+
+    function fillqtemp() {
+        if ($("#poptable tr").length == 1) {
+            alert('至少添加一条');
+            return;
+        } else {
+            var data = $('#poptable').tableRowsToJSONWithFilter();
+            var html = "";
+            $.each(data, function (i, e) {
+                html += '{' + (i + 1) + '|' + e.elem + '|' + e.context + '}';
+            });
+            $("#template").val(html);
+            $('#dlgquery').dialog('close');
+        }
+    }
+
+    function show() {
+        $("#showitem").attr("src", '@Url.Action("WQuery","Template")' + '?domainname=' + '@ViewBag.domainname' + '&intentid=' +$("#id").val() );
+    }
+    function showst() {
+        
+        $("#showitem").attr("src", '@Url.Action("WStPattern","Template")' + '?domainname=' + '@ViewBag.domainname' + '&intentid=' + $("#id").val());
+    }
+    function open(title){
+        $('#dlgitem').dialog('open').dialog('setTitle', '查看'+title);
+    }
+
+    (function ($) {
+        $.fn.extend({
+            tableRowsToJSONWithFilter: function (filter) {
+                var tableSelector = this, item, attr, data, _JSON = [];
+                if (typeof (tableSelector) !== 'object') {
+                    return new Error('table!');
+                };
+                $(this).find('tr').each(function (index, tr) {
+                    if (index > 0) {
+                        item = {};
+                        $(tr).find('td').each(function (index, td) {
+                            attr = $(td).attr('data-id');
+                            data = $(td).text();
+                            if (attr !== undefined && data !== '') {
+                                item[attr] = data;
+                            };
+                        });
+                        _JSON.push(item);
+                    }
+                });
+                return _JSON;
+            }
+        });
+    })(jQuery);
+
+    function subTemplate() {
+        window.location = encodeURI('@Url.Action("AddCshtml")' + '?domainname=@ViewBag.domainname&intentdomain=@ViewBag.intentdomain');
+    }
+</script>
+<input type="hidden" id="id" />
+<div class="head">
+    <div class="title">
+        <span style="vertical-align: middle; height: 20px; line-height: 20px;">知识库定制 </span>
+    </div>
+</div>
+@Html.Action("Step", "ComPart", new
+{
+    items = new List<string>
+    {
+        "意图域", "资源引入", "意图", "模板", "答案显示","测试"
+    },
+    index = 3
+})
+<div class="orderlist  myorder">
+    <div class="tab_cont" style="margin-top: 5px;">
+        <div class="list">
+            <img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="20" height="20" title="系统根据识别模板来确定用户问题与意图的对应关系，有两种方式的识别模板，一种是直接输入具体问题自动添加匹配模板，一种是包含统配规则的句型模板">
+            <span>系统根据识别模板来确定用户问题与意图的对应关系，有两种方式的识别模板，一种是直接输入具体问题自动添加匹配模板，一种是包含统配规则的句型模板</span>
+            <div style="margin: 0 auto; width: 400px;"><label>意图域：</label>@ViewBag.domainname <label style="margin-left: 10px;">意图子域：</label> @ViewBag.intentdomain</div>
+        </div>
+        <div>
+            @Html.Action("Tab", "ComPart", new { href = Url.Action("Index", "Domain") })
+            <div style="width: 800px; float: left">
+                <div class="list" style="margin-top: 10px;">
+                    <table class="myhover" style="width: 100%" cellspacing="0" cellspadding="0" border="0">
+                        <tr>
+                            <th>序号</th>
+                            <th>意图编号</th>
+                            <th>意图</th>
+                            <th>操作</th>
+                        </tr>
+                        @{
+                            int i = 1;
+                            int index = Model.PageSize * (Model.CurrentPageIndex - 1);
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@(index + i)</td>
+                                <td>@item["意图编号"]</td>
+                                <td>@item["查询限定参数"].ToString().Substring(1, item["查询限定参数"].ToString().IndexOf(',') - 1)<span>的</span>@item["意图目标"]</td>
+                                <td>
+                                    @Html.ActionLink("添加", null, null, new { @class = "btn3", @href = "javascript:void(0)", @onclick = "selectTemplate('" + item["意图编号"] + "')" })
+                                    @Html.ActionLink("查看", null, null, new { @class = "btn3", @href = "javascript:void(0)", @onclick = "lookTemplate('" + item["意图编号"] + "')" })
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    </table>
+                    <div class="total pt10">
+                        <div class="fl">共<em>@Model.TotalPageCount</em>页<em>@Model.TotalItemCount</em>条记录，当前为第<em>@Model.CurrentPageIndex</em>页</div>
+                        @Html.Pager(Model, new PagerOptions { PageIndexParameterName = "pageindex", CssClass = "mvcPager" })
+                    </div>
+                </div>
+                <div style="margin: 20px auto 0 auto;  width: 230px;"> <a href="@Url.Action("AddIntent", new { domainname = ViewBag.domainname, intentdomain = ViewBag.intentdomain })" class="btn1">上一步</a><input type="button" style="margin-left: 20px;" class="btn1" onclick="subTemplate()" value="下一步" /></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="addtemplate" style="display: none;">
+    <div style="margin: 0 auto; width: 150px; padding-top: 50px;">
+        <ul class="rul">
+            <li>
+                <input type="radio" name="temp" value="1" />事例问题
+            </li>
+            <li>
+                <input type="radio" name="temp" value="2" />包含通配符句型模板
+            </li>
+        </ul>
+    </div>
+</div>
+<div id="looktemplate" style="display: none;">
+    <div style="margin: 0 auto; width: 150px; padding-top: 50px;">
+        <ul class="rul">
+            <li>
+                <input type="radio" name="look" value="1" />事例问题
+            </li>
+            <li>
+                <input type="radio" name="look" value="2" />包含通配符句型模板
+            </li>
+        </ul>
+    </div>
+</div>
+<div style="display: none;">
+    <div id="dlg" class="easyui-dialog" modal="true" closed="true" style="width:450px;height:240px;" buttons="#dlg-buttons">
+        <div class="easyui-layout" fit="true">
+            <div region="center" id="mainPanle" border="false" border="false" style="padding: 10px;">
+
+                <span>问题：</span>
+                <div style="margin-left: 30px;">
+                    <textarea style="border: 1px solid #87ceeb; width: 374px; height: 90px;" id="question" name="question"></textarea>
+                </div>
+                <div style="margin-top: 8px; color: #8a6d3b;"><img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="17" height="17">注意：添加模板之前，请确认词典是否导入</div>
+            </div>
+        </div>
+    </div>
+    <div id="dlg-buttons">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="save()">保存</a>
+        <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="$('#dlg').dialog('close')">取消</a>
+    </div>
+    <div id="sdlg" class="easyui-dialog" modal="true" closed="true" style="width:600px;height:480px;" buttons="#sdlg-buttons">
+        <div class="easyui-layout" fit="true">
+            <div region="center" id="mainPanle" border="false" border="false" style="padding: 10px;">
+
+                <table style="BORDER-COLLAPSE: collapse" bordercolor=#D8E0E8 cellspacing=0 align=center border=1>
+
+                    <tr><td>示例问题：</td><td><input style="width: 406px;" type="text" id="example" /></td><td><img id="partword" src="@Url.Content("~/Content/images/change.png")" title="模板自动生成" style="vertical-align: middle; cursor: pointer;" width="14" height="14"></td></tr>
+
+                    <tr>
+                        <td>模板：</td>
+                        <td>
+                            <textarea style="width: 400px; height: 160px;" id="template"></textarea>
+                        </td>
+                        <td>
+                            <img id="tipModel" title="模板语法说明" src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle; cursor: pointer;"
+                                 gtitle="
+当前要素共分为4类，固定字符串，通配符，词性，专业术语。格式：
+{位置索引|要素代码 |具体内容}
+要素代码：用于区分各类要素；
+具体内容：要素的具体信息；
+附加信息：需要限制的附加信息（如词性）；
+各要素详细设计如下：
+1）固定字符串	（Fixed）
+描述信息：匹配指定的字符串（包含分隔符），可指定是否进行词性/无词性限制，不带附加信息可认为不进行词性限制。
+格式：{ 索引|F | 字符串}
+其中，字符串与词性支持多值并列，即存在其中一个时即算匹配成功。多值时相应格式为[字符串1,字符串2...]
+2）通配符（Wildcard）
+描述信息：匹配所有字符串（实现时考虑最大匹配还是最小匹配）
+格式：{ 索引|W| . }
+注：是否需要支持数字字母等特殊串？
+
+3）词性限制（Pos）
+描述信息：词性标识（无固定字符串，通过词性来限制）
+格式：{ 索引|P|词性}
+其中，词性支持多值并列，即存在其中一个时即算匹配成功。多值时相应格式为[词性1,词性2,….]
+
+4）专业术语限制（Terminology）
+描述信息：专业术语标识
+格式：{ 索引|T|标识}
+其中，标识支持多值并列，即存在其中一个时即算匹配成功。多值时相应格式为[标识1,标识2,….]
+5）可忽略词（Skip）
+描述信息：可忽略词
+格式：{ 索引|S|字符串}
+匹配不成功则跳过忽略该要素。其中，字符串支持多值并列，即存在其中一个时即算匹配成功。多值时相应格式为[字符串1,字符串2,….]
+6）英文通配（Wildcard English）
+描述信息：匹配连续的英文串
+格式：{ 索引|WE|.}
+7）英文单词（Fixed English）
+描述信息：匹配单个英文单词
+格式：{ 索引|FE|EN}
+举例如下：
+{1|W| . }{2|F|作者}{3|S|是}{4|S|谁}"
+                                 width="14" height="14">
+                            <img width="17" height="17" src="@Url.Content("~/Content/images/updown.png")" id="calcnumber" title="重新计算编号" style="vertical-align: middle; cursor: pointer;" />
+                            <br /><input value="选择" type="button" onclick="selectTem()" />
+
+                        </td>
+                    </tr>
+                    <tr><td>查询条件：</td><td><input style="width: 406px;" type="text" id="condition" /></td><td></td></tr>
+                    <tr><td>关键词：</td><td><input style="width: 406px;" type="text" id="sw" /></td><td></td></tr>
+
+                </table>
+
+                <div style="margin-top: 8px; color: #8a6d3b;">
+                    <img src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle;" width="17" height="17">注意：添加模板之前，请确认词典是否导入
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="sdlg-buttons">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveSt()">保存</a>
+        <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="$('#sdlg').dialog('close'); $('#hdlg').dialog('close')">取消</a>
+    </div>
+    <div id="hdlg" class="easyui-dialog" closed="true" top="30px" left="25px" shadow="false" style="width:430px;height:500px;" buttons="#hdlg-buttons">
+        <div class="easyui-layout" fit="true">
+            <div region="center" border="false" border="false" style="padding: 10px;">
+                <pre id="helptip"></pre>
+            </div>
+        </div>
+    </div>
+    <div id="hdlg-buttons">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="$('#hdlg').dialog('close')">关闭</a>
+    </div>
+
+    <table class="myhover" style="width: 90%;display: none;" cellspacing="0" cellspadding="0" border="0">
+        <tbody id="temp">
+            <tr><td class="lef" data-id="combine">{combine}</td> <td data-id="elem">{elem}</td><td class="lef" data-id="context">{context}</td><td><a href="javascipt:void(0)" onclick="del(this)">删除</a> <a href="javascipt:void(0)" onclick="editele(this)">编辑</a></td></tr>
+        </tbody>
+    </table>
+    <div id="dlgquery" class="easyui-dialog" title="模板创建" modal="true" closed="true"
+         style="width:800px;height:600px;" buttons="#dlgquery-buttons">
+        <div class="easyui-layout" fit="true">
+            <div region="center" class="list" border="false" border="false" style="padding: 10px;">
+                <table class="myhover" style="width: 90%; margin-top: 10px;" cellspacing="0" cellspadding="0" border="0">
+                    <tbody id="poptable">
+                        <tr class="nodrop nodrag"><th>项</th> <th>要素</th> <th>内容</th><th>操作</th></tr>
+                    </tbody>
+                </table>
+                <dl>
+                    <dd>
+                        <label>要素：</label><select id="elem" name="elem">
+                            <option>F</option>
+                            <option>W</option>
+                            <option>P</option>
+                            <option>T</option>
+                            <option>S</option>
+                            <option>WE</option>
+                            <option>FE</option>
+                        </select><img class="tipModel" title="模板语法说明" src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle; cursor: pointer;"
+                                      gtitle="
+当前要素共分为4类，固定字符串，通配符，词性，专业术语。格式：
+{位置索引|要素代码 |具体内容}
+要素代码：用于区分各类要素；
+具体内容：要素的具体信息；
+附加信息：需要限制的附加信息（如词性）；
+各要素详细设计如下：
+1）固定字符串	（Fixed）
+描述信息：匹配指定的字符串（包含分隔符），可指定是否进行词性/无词性限制，不带附加信息可认为不进行词性限制。
+格式：{ 索引|F | 字符串}
+其中，字符串与词性支持多值并列，即存在其中一个时即算匹配成功。多值时相应格式为[字符串1,字符串2...]
+2）通配符（Wildcard）
+描述信息：匹配所有字符串（实现时考虑最大匹配还是最小匹配）
+格式：{ 索引|W| . }
+注：是否需要支持数字字母等特殊串？
+
+3）词性限制（Pos）
+描述信息：词性标识（无固定字符串，通过词性来限制）
+格式：{ 索引|P|词性}
+其中，词性支持多值并列，即存在其中一个时即算匹配成功。多值时相应格式为[词性1,词性2,….]
+
+4）专业术语限制（Terminology）
+描述信息：专业术语标识
+格式：{ 索引|T|标识}
+其中，标识支持多值并列，即存在其中一个时即算匹配成功。多值时相应格式为[标识1,标识2,….]
+5）可忽略词（Skip）
+描述信息：可忽略词
+格式：{ 索引|S|字符串}
+匹配不成功则跳过忽略该要素。其中，字符串支持多值并列，即存在其中一个时即算匹配成功。多值时相应格式为[字符串1,字符串2,….]
+6）英文通配（Wildcard English）
+描述信息：匹配连续的英文串
+格式：{ 索引|WE|.}
+7）英文单词（Fixed English）
+描述信息：匹配单个英文单词
+格式：{ 索引|FE|EN}
+举例如下：
+{1|W| . }{2|F|作者}{3|S|是}{4|S|谁}"
+                                      width="14" height="14">
+                    </dd>
+                    <dd>
+                        <label>内容：</label><input type="text" name="context" />
+                        <input type="button" onclick="appendTxt()" value="+"><img class="tipModel" title="词性帮助对照" src="@Url.Content("~/Content/images/help.png")" style="vertical-align: middle; cursor: pointer;"
+                                                                                  gtitle="
+ag	形语素
+a	形容词
+ad	副形词
+an	名形词
+bg	区别词语素
+b	区别词
+c	连词
+dg	副语素
+d	副词
+e	叹词
+f	方位词
+g	语素
+h	前接成分
+i	成语
+j	简称略语
+k	后接成分
+l	习用语
+mg	数词语素
+m	数词
+ng	名语素
+n	名词
+nr	人名
+ns	地名
+nt	机构团体
+nx	其他名词
+nz	其他专名
+o	拟声词
+p	介词
+qg	量词语素
+q	量词
+rg	代词语素
+r	代词
+s	处所词
+tg	时语素
+t	时间词
+ug	助词语素
+u	助词
+vg	动语素
+v	动词
+vd	副动词
+vn	名动词
+w	标点符号
+x	非语素字
+yg	语气语素
+y	语气词
+z	状态词
+zz	未登录词"
+                                                                                  width="14" height="14">
+                    </dd>
+                    <dd id="dsave" style="text-align: center;">
+                        <input type="button" id="btnadd" onclick="addele()" value="添加" />
+                    </dd>
+                    <dd id="dedit" style="text-align:center; display: none;">
+                        <input type="button" id="btnedit" onclick="modifyele()" value="保存" />
+                        <a href="javascript:;" onclick="backadd()">返回添加</a>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div id="dlgquery-buttons">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="fillqtemp()">确定</a>
+        <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="$('#dlgquery').dialog('close')">关闭</a>
+    </div>
+
+    <div id="dlgitem" class="easyui-dialog" modal="true" maximizable="true" closed="true" style="width:800px;height:600px;">
+        <div class="easyui-layout" fit="true">
+            <div region="center" id="mainPanle" border="false" border="false" style="padding: 5px;">
+                <iframe scrolling="auto" id='showitem' frameborder="0" src="" style="width:100%;height:100%;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
